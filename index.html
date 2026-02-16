@@ -1,0 +1,1329 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NYC Trip</title>
+    <style>
+        :root {
+            --bg-primary: #f5f5f0;
+            --bg-card: #ffffff;
+            --bg-dark: #2d2d2d;
+            --text-primary: #1a1a1a;
+            --text-secondary: #8a8a8a;
+            --text-light: #ffffff;
+            --accent: #2d2d2d;
+            --border: #e8e8e8;
+            --shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            --shadow-hover: 0 4px 20px rgba(0, 0, 0, 0.12);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-primary: #1a1a1a;
+                --bg-card: #2d2d2d;
+                --bg-dark: #f5f5f0;
+                --text-primary: #f5f5f0;
+                --text-secondary: #a0a0a0;
+                --text-light: #1a1a1a;
+                --accent: #f5f5f0;
+                --border: #404040;
+                --shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+                --shadow-hover: 0 4px 20px rgba(0, 0, 0, 0.5);
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .container::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: var(--home-bg-image, none);
+            background-size: cover;
+            background-position: center;
+            filter: blur(25px);
+            opacity: 0.25;
+            z-index: -1;
+        }
+
+        .header {
+            text-align: center;
+            padding: 30px 20px 25px;
+            margin-bottom: 25px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 400;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 300;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .countdown-section {
+            background-color: rgba(255, 255, 255, 0.85);
+            padding: 25px;
+            margin-bottom: 20px;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(10px);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .countdown-section {
+                background-color: rgba(45, 45, 45, 0.85);
+            }
+        }
+
+        .countdown-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            margin-bottom: 15px;
+        }
+
+        .countdown-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+
+        .countdown-item {
+            text-align: center;
+        }
+
+        .countdown-number {
+            font-size: 32px;
+            font-weight: 300;
+            display: block;
+            line-height: 1;
+            margin-bottom: 8px;
+        }
+
+        .countdown-unit {
+            font-size: 10px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .info-card {
+            background-color: rgba(255, 255, 255, 0.85);
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .info-card {
+                background-color: rgba(45, 45, 45, 0.85);
+            }
+        }
+
+        .info-card > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .info-card h2 {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: var(--text-secondary);
+        }
+
+        .booking-card {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background-color: rgba(245, 245, 240, 0.6);
+            border-radius: 12px;
+            margin-bottom: 15px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .booking-card {
+                background-color: rgba(26, 26, 26, 0.6);
+            }
+        }
+
+        .booking-icon {
+            width: 40px;
+            height: 40px;
+            background-color: var(--bg-dark);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .booking-details {
+            flex: 1;
+        }
+
+        .booking-title {
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 3px;
+        }
+
+        .booking-name {
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .booking-time {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .info-box {
+            background-color: var(--bg-primary);
+            padding: 12px 8px;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-width: 0;
+        }
+
+        .info-box:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .info-box-icon {
+            font-size: 24px;
+            margin-bottom: 6px;
+        }
+
+        .info-box-label {
+            font-size: 8px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 3px;
+            line-height: 1.1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 100%;
+        }
+
+        .info-box-value {
+            font-size: 9px;
+            font-weight: 500;
+            line-height: 1.1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 100%;
+        }
+
+        .days-tabs {
+            display: flex;
+            overflow-x: auto;
+            gap: 10px;
+            margin-bottom: 25px;
+            padding-bottom: 5px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .days-tabs::-webkit-scrollbar {
+            display: none;
+        }
+
+        .day-tab {
+            background-color: var(--bg-card);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 500;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow);
+        }
+
+        .day-tab:hover {
+            box-shadow: var(--shadow-hover);
+        }
+
+        .day-tab.active {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+        }
+
+        .day-tab-date {
+            display: block;
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 3px;
+        }
+
+        .day-tab.active .day-tab-date {
+            color: var(--text-light);
+            opacity: 0.7;
+        }
+
+        .itinerary-view,
+        .detail-view {
+            display: none;
+            padding-bottom: 120px;
+        }
+
+        .itinerary-view.active,
+        .detail-view.active {
+            display: block;
+        }
+
+        .view-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 25px;
+        }
+
+        .back-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 8px;
+            color: var(--text-primary);
+        }
+
+        .view-title {
+            font-size: 18px;
+            font-weight: 500;
+            text-align: center;
+            flex: 1;
+        }
+
+        .view-subtitle {
+            font-size: 13px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 3px;
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 40px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 12px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background-color: var(--border);
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 25px;
+            cursor: pointer;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -34px;
+            top: 5px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: var(--bg-dark);
+            border: 2px solid var(--bg-primary);
+            z-index: 1;
+        }
+
+        .timeline-card {
+            background-color: var(--bg-card);
+            padding: 18px;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            transition: all 0.2s ease;
+        }
+
+        .timeline-card:hover {
+            box-shadow: var(--shadow-hover);
+            transform: translateX(2px);
+        }
+
+        .timeline-time {
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+
+        .timeline-title {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .timeline-description {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .detail-image {
+            width: 100%;
+            height: 180px;
+            background-size: cover;
+            background-position: center;
+            border-radius: 20px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .detail-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .detail-card {
+            background-color: var(--bg-card);
+            padding: 18px;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            margin-bottom: 15px;
+        }
+
+        .detail-time {
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .detail-title {
+            font-size: 20px;
+            font-weight: 400;
+            margin-bottom: 10px;
+            line-height: 1.3;
+        }
+
+        .detail-description {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .detail-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            padding-top: 15px;
+            border-top: 1px solid var(--border);
+        }
+
+        .detail-info-item {
+            flex: 1;
+            min-width: 100px;
+        }
+
+        .detail-info-label {
+            font-size: 10px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        .detail-info-value {
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .maps-btn {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            border: none;
+            padding: 14px;
+            border-radius: 14px;
+            width: 100%;
+            font-family: inherit;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .maps-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .navigation-pills {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            position: fixed;
+            bottom: 65px;
+            left: 0;
+            right: 0;
+            z-index: 10;
+            background-color: var(--bg-primary);
+            padding: 8px 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .nav-pill {
+            background-color: var(--bg-card);
+            border: none;
+            padding: 10px 25px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow);
+        }
+
+        .nav-pill:hover:not(:disabled) {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            transform: scale(1.05);
+        }
+
+        .nav-pill:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .progress-dots {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            position: fixed;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            z-index: 10;
+            background-color: var(--bg-primary);
+            padding: 10px 0;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: var(--border);
+        }
+
+        .dot.active {
+            background-color: var(--bg-dark);
+            width: 20px;
+            border-radius: 3px;
+        }
+
+        .home-view {
+            display: block;
+        }
+
+        .home-view.hidden {
+            display: none;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: var(--bg-card);
+            padding: 30px;
+            border-radius: 20px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        .modal-map {
+            max-width: 95%;
+            width: 95%;
+            height: 90vh;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .modal-close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background-color: var(--bg-card);
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 1001;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-primary);
+            transition: all 0.2s ease;
+        }
+
+        .modal-close-btn:hover {
+            transform: scale(1.1);
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+        }
+
+        .modal-header {
+            font-size: 20px;
+            font-weight: 500;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .emergency-btn {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            border: none;
+            padding: 16px;
+            border-radius: 12px;
+            width: 100%;
+            font-family: inherit;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.2s ease;
+        }
+
+        .emergency-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .emergency-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.7;
+        }
+
+        .emergency-number {
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .countdown-number {
+                font-size: 26px;
+            }
+            
+            .info-box {
+                padding: 10px 6px;
+            }
+            
+            .info-box-icon {
+                font-size: 20px;
+                margin-bottom: 4px;
+            }
+            
+            .info-box-label {
+                font-size: 7px;
+                letter-spacing: 0.3px;
+            }
+            
+            .info-box-value {
+                font-size: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>NEW YORK CITY</h1>
+            <p>Marzo 2026</p>
+        </div>
+
+        <div id="homeView" class="home-view">
+            <div class="countdown-section">
+                <div class="countdown-label" id="countdownLabel">Partenza tra</div>
+                <div class="countdown-grid">
+                    <div class="countdown-item">
+                        <span class="countdown-number" id="days">0</span>
+                        <span class="countdown-unit">Giorni</span>
+                    </div>
+                    <div class="countdown-item">
+                        <span class="countdown-number" id="hours">0</span>
+                        <span class="countdown-unit">Ore</span>
+                    </div>
+                    <div class="countdown-item">
+                        <span class="countdown-number" id="mins">0</span>
+                        <span class="countdown-unit">Min</span>
+                    </div>
+                    <div class="countdown-item">
+                        <span class="countdown-number" id="secs">0</span>
+                        <span class="countdown-unit">Sec</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-card" id="currentDayCard">
+                <h2>Adesso</h2>
+                <div class="booking-card">
+                    <div class="booking-details">
+                        <div class="booking-title" id="currentEventTitle">In programma</div>
+                        <div class="booking-name" id="currentDayName">Caricamento...</div>
+                        <div class="booking-time" id="currentDayDate"></div>
+                    </div>
+                </div>
+                <div id="currentEventMapsButton"></div>
+            </div>
+
+            <div class="info-card">
+                <h2>Essential Info</h2>
+                <div class="info-grid">
+                    <div class="info-box" onclick="window.open('https://drive.google.com/drive/folders/1LMPKE0qFn8b4sEKwgBTNPg22sOotYQS?usp=drive_link', '_blank')">
+                        <div class="info-box-icon">📄</div>
+                        <div class="info-box-label">DOCUMENTI</div>
+                        <div class="info-box-value">IDENTITA E VISTI</div>
+                    </div>
+                    <div class="info-box" onclick="showMapModal()">
+                        <div class="info-box-icon">🍔</div>
+                        <div class="info-box-label">FOOD & SHOP</div>
+                        <div class="info-box-value">RISTORANTI</div>
+                    </div>
+                    <div class="info-box" onclick="showEmergencyModal()">
+                        <div class="info-box-icon">🚨</div>
+                        <div class="info-box-label">EMERGENZA</div>
+                        <div class="info-box-value">RUBRICA</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="days-tabs">
+                <button class="day-tab" onclick="showDay(0)">Mar 3 <span class="day-tab-date">Arrivo</span></button>
+                <button class="day-tab" onclick="showDay(1)">Mer 4 <span class="day-tab-date">Empire</span></button>
+                <button class="day-tab" onclick="showDay(2)">Gio 5 <span class="day-tab-date">Tour</span></button>
+                <button class="day-tab" onclick="showDay(3)">Ven 6 <span class="day-tab-date">Memorial</span></button>
+                <button class="day-tab" onclick="showDay(4)">Sab 7 <span class="day-tab-date">Central Park</span></button>
+                <button class="day-tab" onclick="showDay(5)">Dom 8 <span class="day-tab-date">MoMA</span></button>
+                <button class="day-tab" onclick="showDay(6)">Lun 9 <span class="day-tab-date">Edge</span></button>
+                <button class="day-tab" onclick="showDay(7)">Mar 10 <span class="day-tab-date">Partenza</span></button>
+            </div>
+        </div>
+
+        <div id="itineraryView" class="itinerary-view"></div>
+        <div id="detailView" class="detail-view"></div>
+    </div>
+
+    <div id="emergencyModal" class="modal" onclick="if(event.target == this) closeEmergencyModal()">
+        <div class="modal-content">
+            <div class="modal-header">Numeri di Emergenza</div>
+            <button class="emergency-btn" onclick="window.location.href='tel:12127379100'">
+                <div>
+                    <div class="emergency-label">Ambasciata Italiana</div>
+                    <div class="emergency-number">+1 212 737 9100</div>
+                </div>
+                <div style="font-size: 24px;">📞</div>
+            </button>
+            <button class="emergency-btn" onclick="window.location.href='tel:390258240628'">
+                <div>
+                    <div class="emergency-label">Assicurazione Sanitaria</div>
+                    <div class="emergency-number">+39 02 5824 0628</div>
+                </div>
+                <div style="font-size: 24px;">🏥</div>
+            </button>
+            <button class="emergency-btn" onclick="window.location.href='tel:911'">
+                <div>
+                    <div class="emergency-label">Emergenza USA</div>
+                    <div class="emergency-number">911</div>
+                </div>
+                <div style="font-size: 24px;">🚑</div>
+            </button>
+        </div>
+    </div>
+
+    <div id="mapModal" class="modal" onclick="if(event.target == this) closeMapModal()">
+        <div class="modal-content modal-map">
+            <button class="modal-close-btn" onclick="closeMapModal()">✕</button>
+            <iframe src="https://www.google.com/maps/d/embed?mid=13gdPWkPsrQ8miAs7BKxoF73DBQDyd10&ehbc=2E312F" width="100%" height="100%" style="border:0; border-radius: 12px;" allowfullscreen="" loading="lazy"></iframe>
+        </div>
+    </div>
+
+    <script>
+        const itineraries = [
+            {
+                day: 'Martedì 3 Marzo 2026',
+                locations: [
+                    { time: '04:30', name: 'Uscita di casa', duration: null, cost: null, notes: null, description: 'Partenza da casa verso l\'aeroporto di Brindisi per iniziare l\'avventura a New York.', image: 'images/01.jpg', maps: null },
+                    { time: '06:10', name: 'Volo Brindisi - Roma', duration: '1:15 h', cost: null, notes: 'AZ 1620', description: 'Volo nazionale Alitalia da Brindisi a Roma Fiumicino, durata 1 ora e 15 minuti.', image: 'images/02.jpg', maps: null },
+                    { time: '07:25', name: 'Arrivo Roma Fiumicino T1', duration: null, cost: null, notes: null, description: 'Arrivo all\'aeroporto di Roma Fiumicino Terminal 1 per il check-in del volo intercontinentale.', image: 'images/03.jpg', maps: null },
+                    { time: '10:15', name: 'Volo Roma - New York', duration: '10 h', cost: null, notes: 'AZ 0608', description: 'Volo intercontinentale Alitalia da Roma a New York JFK, attraversamento dell\'Atlantico in 10 ore.', image: 'images/04.jpg', maps: null },
+                    { time: '14:15', name: 'Arrivo JFK Terminal 1', duration: null, cost: null, notes: 'Controlli e ritiro bagagli', description: 'Arrivo all\'aeroporto JFK di New York, controlli doganali e ritiro bagagli.', image: 'images/05.jpg', maps: 'https://maps.google.com/?q=JFK+Airport+Terminal+1' },
+                    { time: '15:30', name: 'JFK → Hotel Edison', duration: null, cost: '$27.50', notes: 'Taxi/Transfer', description: 'Trasferimento dall\'aeroporto JFK all\'Hotel Edison nel cuore di Manhattan, vicino a Times Square.', image: 'images/06.jpg', maps: 'https://maps.google.com/?q=Hotel+Edison+New+York' },
+                    { time: '16:45', name: 'Check-in Hotel Edison', duration: null, cost: '$321.30', notes: 'Resort Fee', description: 'Hotel Edison, storico hotel di New York situato a pochi passi da Times Square e Broadway.', image: 'images/hotel.jpg', maps: 'https://maps.google.com/?q=Hotel+Edison+New+York' },
+                    { time: '17:15', name: 'Riposo in camera', duration: null, cost: null, notes: null, description: 'Tempo di riposo in camera per recuperare dal lungo viaggio transatlantico.', image: 'images/07.jpg', maps: null },
+                    { time: '18:15', name: 'Times Square', duration: null, cost: null, notes: null, description: 'Times Square, il cuore pulsante di Manhattan. Famosa per i suoi enormi cartelloni pubblicitari luminosi, teatri di Broadway e atmosfera elettrica 24 ore su 24.', image: 'images/08.jpg', maps: 'https://maps.google.com/?q=Times+Square+New+York' },
+                    { time: '19:05', name: 'Rockefeller Center', duration: null, cost: null, notes: null, description: 'Il Rockefeller Center è un complesso commerciale Art Déco nel centro di Manhattan, famoso per la sua pista di pattinaggio e l\'albero di Natale.', image: 'images/09.jpg', maps: 'https://maps.google.com/?q=Rockefeller+Center+New+York' },
+                    { time: '19:30', name: 'Top of the Rock', duration: '1:30 h', cost: '$142.00', notes: 'PRENOTATO 20:00', description: 'Osservatorio panoramico sulla cima del Rockefeller Center. Offre una vista spettacolare a 360° su Manhattan, incluso l\'Empire State Building e Central Park.', image: 'images/10.jpg', maps: 'https://maps.google.com/?q=Top+of+the+Rock+New+York' },
+                    { time: '21:00', name: 'Cena', duration: null, cost: null, notes: null, description: 'Cena in uno dei tanti ristoranti della zona di Midtown Manhattan.', image: 'images/cena.jpg', maps: null },
+                    { time: '22:00', name: 'Rientro Hotel Edison', duration: null, cost: null, notes: null, description: 'Rientro in hotel per riposare dopo il primo giorno nella Grande Mela.', image: 'images/hotel.jpg', maps: 'https://maps.google.com/?q=Hotel+Edison+New+York' }
+                ]
+            },
+            {
+                day: 'Mercoledì 4 Marzo 2026',
+                locations: [
+                    { time: '08:00', name: 'Colazione hotel', duration: '30 min', cost: null, notes: null, description: 'Colazione all\'Hotel Edison per iniziare la giornata con energia.', image: 'images/colazione.jpg', maps: null },
+                    { time: '08:30', name: 'Metro Hotel → Empire', duration: '15 min', cost: null, notes: null, description: 'Spostamento in metropolitana verso l\'Empire State Building nella zona di Midtown South.', image: 'images/metro.jpg', maps: null },
+                    { time: '09:00', name: 'Empire State Building 86° Piano', duration: '1 h', cost: '$88.00', notes: 'PRENOTATO 9:00', description: 'L\'Empire State Building è un grattacielo in stile Art Déco di 102 piani. L\'osservatorio all\'86° piano offre viste panoramiche incredibili su tutta New York.', image: 'images/11.jpg', maps: 'https://maps.google.com/?q=Empire+State+Building+New+York' },
+                    { time: '10:10', name: 'Madison Square Park', duration: null, cost: null, notes: null, description: 'Parco pubblico di Manhattan, famoso per le installazioni artistiche e per ospitare il primo Shake Shack. Luogo ideale per rilassarsi nel verde urbano.', image: 'images/12.jpg', maps: 'https://maps.google.com/?q=Madison+Square+Park+New+York' },
+                    { time: '10:35', name: 'Flatiron Building', duration: null, cost: null, notes: null, description: 'Il Flatiron Building è un grattacielo triangolare completato nel 1902, uno degli edifici più fotografati di New York. Il suo design unico a forma di ferro da stiro lo rende un\'icona architettonica.', image: 'images/13.jpg', maps: 'https://maps.google.com/?q=Flatiron+Building+New+York' },
+                    { time: '10:55', name: 'Harry Potter Store', duration: '20 min', cost: null, notes: null, description: 'Il più grande negozio di Harry Potter al mondo, con tre piani di merchandising, installazioni interattive e riproduzioni fedeli dal mondo magico.', image: 'images/14.jpg', maps: 'https://maps.google.com/?q=Harry+Potter+Store+New+York' },
+                    { time: '11:30', name: 'Friends Experience', duration: '1:30 h', cost: '$120.00', notes: 'PRENOTATO 11:30 - NO CITY PASS', description: 'Esperienza immersiva dedicata alla serie TV Friends. Include ricostruzioni dei set originali come l\'appartamento di Monica, il Central Perk e molto altro.', image: 'images/15.jpg', maps: 'https://maps.google.com/?q=Friends+Experience+New+York' },
+                    { time: '13:00', name: 'Bryant Park', duration: null, cost: null, notes: null, description: 'Bryant Park è un\'oasi verde nel cuore di Manhattan, circondata da grattacieli. Offre prati, aree relax, caffè e una splendida vista sulla New York Public Library.', image: 'images/16.jpg', maps: 'https://maps.google.com/?q=Bryant+Park+New+York' },
+                    { time: '13:00', name: 'Pranzo', duration: '1:30 h', cost: null, notes: null, description: 'Pausa pranzo nella zona di Midtown, con numerose opzioni di ristoranti e caffetterie.', image: 'images/pranzo.jpg', maps: null },
+                    { time: '14:30', name: 'NYC Public Library', duration: '30 min', cost: null, notes: null, description: 'La New York Public Library è una biblioteca Beaux-Arts del 1911, famosa per i suoi leoni di marmo Patience e Fortitude. Ospita sale di lettura magnifiche e mostre culturali.', image: 'images/17.jpg', maps: 'https://maps.google.com/?q=New+York+Public+Library' },
+                    { time: '15:00', name: 'Grand Central Terminal', duration: '30 min', cost: null, notes: null, description: 'Grand Central Terminal è una stazione ferroviaria storica con un soffitto a volta decorato con costellazioni. Capolavoro architettonico Beaux-Arts, è uno dei luoghi più iconici di New York.', image: 'images/18.jpg', maps: 'https://maps.google.com/?q=Grand+Central+Terminal+New+York' },
+                    { time: '15:30', name: 'Shopping', duration: null, cost: null, notes: null, description: 'Shopping nella 5th Avenue e dintorni, tra boutique di lusso e negozi iconici di New York.', image: 'images/shopping.jpg', maps: null },
+                    { time: '17:30', name: 'Summit', duration: '1:30 h', cost: '$88.00', notes: 'PRENOTATO 17:30 - NO CITY PASS', description: 'Summit One Vanderbilt è un osservatorio ultramoderno con pavimenti trasparenti e installazioni artistiche. Offre viste mozzafiato e un\'esperienza immersiva unica.', image: 'images/19.jpg', maps: 'https://maps.google.com/?q=Summit+One+Vanderbilt+New+York' },
+                    { time: '19:10', name: 'Rientro Hotel Edison', duration: null, cost: null, notes: null, description: 'Ritorno all\'Hotel Edison per rinfrescarsi prima della serata.', image: 'images/hotel.jpg', maps: 'https://maps.google.com/?q=Hotel+Edison+New+York' },
+                    { time: '21:00', name: 'Cena', duration: null, cost: null, notes: null, description: 'Cena in uno dei ristoranti caratteristici di Manhattan.', image: 'images/cena.jpg', maps: null },
+                    { time: '22:00', name: 'Speakeasy/Rooftop', duration: null, cost: null, notes: null, description: 'Serata in un rooftop bar o speakeasy, tipici locali newyorkesi con atmosfera unica.', image: 'images/rooftop.jpg', maps: null },
+                    { time: '23:30', name: 'Rientro Hotel', duration: null, cost: null, notes: 'Costo giornata: $296.00', description: 'Fine della seconda giornata a New York, rientro in hotel.', image: 'images/hotel.jpg', maps: 'https://maps.google.com/?q=Hotel+Edison+New+York' }
+                ]
+            },
+            {
+                day: 'Giovedì 5 Marzo 2026',
+                locations: [
+                    { time: '08:00', name: 'Colazione hotel', duration: '30 min', cost: null, notes: null, description: 'Colazione all\'Hotel Edison per iniziare la giornata dedicata ai quartieri esterni.', image: 'images/colazione.jpg', maps: null },
+                    { time: '09:00', name: 'Tour Guidato Bronx, Queens, Brooklyn', duration: '5 h', cost: '$150.00', notes: 'PRENOTARE', description: 'Tour guidato attraverso i tre borough più caratteristici di New York: Bronx con il suo zoo famoso, Queens multiculturale e Brooklyn con i suoi quartieri hipster.', image: 'images/20.jpg', maps: 'https://maps.app.goo.gl/1xoBLcE26vR6JxSk7' },
+                    { time: '14:00', name: 'Katz\'s Delicatessen', duration: null, cost: null, notes: null, description: 'Storica gastronomia ebraica aperta dal 1888, famosa per i pastrami sandwich e per essere stata location del film "Harry ti presento Sally".', image: 'images/21.jpg', maps: 'https://maps.app.goo.gl/THkg3HANTVF7kAVY7' },
+                    { time: '14:30', name: 'Chinatown', duration: '1:20 h', cost: null, notes: null, description: 'Chinatown di Manhattan è uno dei quartieri cinesi più grandi del mondo occidentale. Caratterizzato da negozi esotici, ristoranti autentici e mercati vivaci.', image: 'images/22.jpg', maps: 'https://maps.app.goo.gl/A9Tk8tH9YkjE4HvBA' },
+                    { time: '14:30', name: 'Canal Street', duration: '20 min', cost: null, notes: null, description: 'Canal Street è l\'arteria principale di Chinatown, famosa per i suoi mercati vivaci, negozi di souvenir e atmosfera caotica tipicamente asiatica.', image: 'images/22a.jpg', maps: 'https://maps.app.goo.gl/TbeJ72RCqqMvs1Vk7' },
+                    { time: '14:50', name: 'Mott Street', duration: '20 min', cost: null, notes: null, description: 'Mott Street è considerata il cuore storico di Chinatown, con ristoranti autentici, negozi tradizionali e templi buddisti.', image: 'images/22b.jpg', maps: 'https://maps.app.goo.gl/DmAurGyVhkG2qVF37' },
+                    { time: '15:10', name: 'Doyers Street', duration: '20 min', cost: null, notes: null, description: 'Doyers Street, conosciuta come "Bloody Angle", è una strada curva famosa per la sua storia criminale e i suoi ristoranti tradizionali.', image: 'images/22c.jpg', maps: 'https://maps.app.goo.gl/dKtdkgt8qsjvBNcs8' },
+                    { time: '15:30', name: 'Pell Street', duration: '20 min', cost: null, notes: null, description: 'Pell Street è una stretta via di Chinatown con negozi etnici, barbieri tradizionali e il famoso Nom Wah Tea Parlor, il più antico dim sum di NYC.', image: 'images/22d.jpg', maps: 'https://maps.app.goo.gl/tLCQtGZ6QCWEr5L98' },
+                    { time: '15:50', name: 'Little Italy', duration: '1 h', cost: null, notes: null, description: 'Little Italy è il quartiere italiano di Manhattan, con ristoranti tradizionali, caffè e pasticcerie. Famoso per la Festa di San Gennaro che si tiene ogni settembre.', image: 'images/23.jpg', maps: 'https://maps.app.goo.gl/ug6LCfL2ejiU1wqp7' },
+                    { time: '15:50', name: 'Mulberry Street', duration: '20 min', cost: null, notes: null, description: 'Mulberry Street è la via principale di Little Italy, fiancheggiata da ristoranti italiani storici, caffè e pasticcerie con tavolini all\'aperto.', image: 'images/23a.jpg', maps: 'https://maps.app.goo.gl/s56tbeSCJLTUc2Jr6' },
+                    { time: '16:10', name: 'Grand Street', duration: '20 min', cost: null, notes: null, description: 'Grand Street segna il confine tra Little Italy e Chinatown, con una mescolanza unica di cultura italiana e cinese.', image: 'images/23b.jpg', maps: 'https://maps.app.goo.gl/26Z8m1baKRKp5Srx7' },
+                    { time: '16:30', name: 'Hester Street', duration: '20 min', cost: null, notes: null, description: 'Hester Street è una via storica di Little Italy con edifici in mattoni del XIX secolo e negozi caratteristici del quartiere.', image: 'images/23c.jpg', maps: 'https://maps.app.goo.gl/NxtLkaxLpWgX9rM28' },
+                    { time: '17:00', name: '33 Thomas St.', duration: null, cost: null, notes: null, description: 'Edificio brutalist senza finestre costruito nel 1974, noto come "The Long Lines Building". Circondato da teorie del complotto per il suo design misterioso.', image: 'images/24.jpg', maps: 'https://maps.app.goo.gl/UBH4NQVHTyGcemVX6' },
+                    { time: '17:30', name: 'Rientro Hotel', duration: null, cost: null, notes: null, description: 'Rientro all\'Hotel Edison dopo una giornata esplorando i diversi quartieri di New York.', image: 'images/hotel.jpg', maps: 'https://maps.app.goo.gl/KVrLBXC7noMuTbrt5' },
+                    { time: '21:00', name: 'Cena', duration: null, cost: null, notes: null, description: 'Cena serale per concludere la terza giornata newyorkese.', image: 'images/cena.jpg', maps: null },
+                    { time: '22:00', name: 'Speakeasy/Rooftop', duration: null, cost: null, notes: null, description: 'Serata in uno dei caratteristici bar di Manhattan con vista panoramica.', image: 'images/rooftop.jpg', maps: null },
+                    { time: '23:30', name: 'Rientro Hotel', duration: null, cost: null, notes: null, description: 'Fine della terza giornata, rientro in hotel per riposare.', image: 'images/hotel.jpg', maps: 'https://maps.app.goo.gl/KVrLBXC7noMuTbrt5' }
+                ]
+            },
+            {
+                day: 'Venerdì 6 Marzo 2026',
+                locations: [
+                    { time: '08:00', name: 'Colazione hotel', duration: null, cost: null, notes: null, description: 'Colazione all\'hotel prima di visitare il sito del World Trade Center.', image: 'images/colazione.jpg', maps: null },
+                    { time: '08:30', name: 'Memorial 11 Settembre (Fontane)', duration: '20 min', cost: null, notes: null, description: 'Le fontane commemorative del 9/11 Memorial occupano lo spazio delle Torri Gemelle. Due vasche riflettenti con cascate dove sono incisi i nomi delle vittime.', image: 'images/25.jpg', maps: 'https://maps.google.com/?q=911+Memorial+New+York' },
+                    { time: '09:30', name: 'Memorial 11 Settembre (Museo)', duration: '1 h', cost: null, notes: 'PRENOTATO 09:30', description: 'Il Museo del 11 Settembre documenta gli eventi dell\'attacco terroristico del 2001 con artefatti, testimonianze e installazioni multimediali toccanti.', image: 'images/26.jpg', maps: 'https://maps.google.com/?q=911+Memorial+Museum+New+York' },
+                    { time: '10:30', name: 'Oculus', duration: '30 min', cost: null, notes: null, description: 'L\'Oculus è la stazione del World Trade Center progettata da Santiago Calatrava. Struttura bianca futuristica che ricorda una colomba, ospita negozi e ristoranti.', image: 'images/27.jpg', maps: 'https://maps.google.com/?q=Oculus+World+Trade+Center+New+York' },
+                    { time: '11:00', name: 'Century 21', duration: '30 min', cost: null, notes: null, description: 'Century 21 era un famoso department store di lusso a prezzi scontati. Chiuso nel 2020, la zona ora ospita altri negozi.', image: 'images/shopping.jpg', maps: null },
+                    { time: '11:30', name: 'Wall Street', duration: '5 min', cost: null, notes: null, description: 'Wall Street è il centro finanziario mondiale, sede della Borsa di New York. La strada simbolo del capitalismo americano, nel cuore del distretto finanziario.', image: 'images/28.jpg', maps: 'https://maps.google.com/?q=Wall+Street+New+York' },
+                    { time: '12:05', name: 'Toro di Wall Street', duration: '5 min', cost: null, notes: null, description: 'Charging Bull è la famosa scultura in bronzo di 3,2 tonnellate simbolo della forza finanziaria americana. Icona fotografica di Lower Manhattan.', image: 'images/29.jpg', maps: 'https://maps.google.com/?q=Charging+Bull+Wall+Street+New+York' },
+                    { time: '12:30', name: 'Ferry Staten Island', duration: null, cost: null, notes: 'PRENOTATO', description: 'Il traghetto gratuito per Staten Island offre viste spettacolari sulla Statua della Libertà, Ellis Island e lo skyline di Manhattan. Un\'esperienza imperdibile.', image: 'images/30.jpg', maps: 'https://maps.google.com/?q=Staten+Island+Ferry+Terminal' },
+                    { time: '13:45', name: 'Pranzo', duration: null, cost: null, notes: null, description: 'Pausa pranzo nella zona di Lower Manhattan o Brooklyn.', image: 'images/pranzo.jpg', maps: null },
+                    { time: '13:40', name: 'Brooklyn Bridge', duration: '1:10 h', cost: null, notes: 'Attraversamento a piedi', description: 'Il Brooklyn Bridge è uno dei ponti più iconici al mondo, completato nel 1883. L\'attraversamento pedonale offre viste mozzafiato su Manhattan e Brooklyn.', image: 'images/31.jpg', maps: 'https://maps.google.com/?q=Brooklyn+Bridge+New+York' },
+                    { time: '15:00', name: 'Dumbo + Dumbo Park', duration: '2 h', cost: null, notes: null, description: 'Dumbo (Down Under the Manhattan Bridge Overpass) è un quartiere trendy di Brooklyn con gallerie d\'arte, ristoranti e la vista iconica sul Manhattan Bridge incorniciato tra edifici in mattoni.', image: 'images/32.jpg', maps: 'https://maps.google.com/?q=Dumbo+Brooklyn+New+York' },
+                    { time: '17:00', name: 'Manhattan Bridge', duration: null, cost: null, notes: null, description: 'Il Manhattan Bridge collega Lower Manhattan a Brooklyn. Offre viste spettacolari ed è meno affollato del Brooklyn Bridge.', image: 'images/33.jpg', maps: 'https://maps.google.com/?q=Manhattan+Bridge+New+York' },
+                    { time: '18:00', name: 'Rientro Hotel', duration: null, cost: null, notes: null, description: 'Rientro all\'Hotel Edison dopo l\'esplorazione di Lower Manhattan e Brooklyn.', image: 'images/hotel.jpg', maps: 'https://maps.google.com/?q=Hotel+Edison+New+York' },
+                    { time: '21:00', name: 'Cena', duration: null, cost: null, notes: null, description: 'Cena serale in uno dei quartieri di Manhattan.', image: 'images/cena.jpg', maps: null },
+                    { time: '22:00', name: 'Speakeasy/Rooftop', duration: null, cost: null, notes: null, description: 'Serata nei caratteristici bar newyorkesi.', image: 'images/rooftop.jpg', maps: null },
+                    { time: '23:30', name: 'Rientro Hotel', duration: null, cost: null, notes: null, description: 'Fine della quarta giornata a New York.', image: 'images/hotel.jpg', maps: 'https://maps.google.com/?q=Hotel+Edison+New+York' }
+                ]
+            },
+            {
+                day: 'Sabato 7 Marzo 2026',
+                locations: [
+                    { time: '08:00', name: 'Colazione hotel', duration: '30 min', cost: null, notes: null, description: 'Colazione all\'Hotel Edison per iniziare una giornata intensa dedicata a Central Park e ai suoi musei.', image: 'images/colazione.jpg', maps: null },
+                    { time: '08:30', name: 'Rockefeller Center', duration: '5 min', cost: null, notes: null, description: 'Passaggio veloce al Rockefeller Center prima di dirigersi verso Central Park lungo la 5th Avenue.', image: 'images/09.jpg', maps: 'https://maps.google.com/?q=Rockefeller+Center+New+York' },
+                    { time: '08:42', name: '5th Avenue → Central Park', duration: null, cost: null, notes: null, description: 'Passeggiata lungo la famosa 5th Avenue, l\'arteria più elegante di Manhattan, ricca di boutique di lusso e edifici storici.', image: 'images/34.jpg', maps: 'https://maps.google.com/?q=5th+Avenue+New+York' },
+                    { time: '08:43', name: 'St. Patrick\'s Cathedral', duration: '15 min', cost: null, notes: null, description: 'La Cattedrale di San Patrizio è una chiesa neogotica costruita nel 1879, la più grande cattedrale cattolica degli Stati Uniti con le sue magnifiche vetrate colorate.', image: 'images/35.jpg', maps: 'https://maps.google.com/?q=St+Patrick+Cathedral+New+York' },
+                    { time: '09:03', name: 'Trump Tower', duration: '5 min', cost: null, notes: null, description: 'Grattacielo di 58 piani sulla 5th Avenue, sede della Trump Organization. Famoso per i suoi interni in marmo e l\'atrio con cascata.', image: 'images/36.jpg', maps: 'https://maps.google.com/?q=Trump+Tower+New+York' },
+                    { time: '09:20', name: 'Plaza Hotel', duration: '5 min', cost: null, notes: null, description: 'Iconico hotel di lusso in stile Château costruito nel 1907. Location di numerosi film tra cui "Mamma ho perso l\'aereo" e "Il Grande Gatsby".', image: 'images/37.jpg', maps: 'https://maps.google.com/?q=Plaza+Hotel+New+York' },
+                    { time: '09:30', name: 'Central Park - Noleggio Bici', duration: null, cost: null, notes: 'Inizio tour Central Park', description: 'Noleggio biciclette per esplorare i 341 ettari di Central Park, il polmone verde di Manhattan progettato da Frederick Law Olmsted.', image: 'images/38.jpg', maps: 'https://maps.google.com/?q=Central+Park+Bike+Rental+New+York' },
+                    { time: '09:30', name: 'Zoo Central Park', duration: null, cost: null, notes: null, description: 'Lo zoo di Central Park, aperto dal 1864, ospita oltre 130 specie diverse in un\'area compatta di 2,6 ettari nel cuore del parco.', image: 'images/39.jpg', maps: 'https://maps.google.com/?q=Central+Park+Zoo+New+York' },
+                    { time: '09:40', name: 'Sheep Meadow', duration: '10 min', cost: null, notes: null, description: 'Sheep Meadow è un prato di 6 ettari dove fino al 1934 pascolavano le pecore. Oggi è luogo perfetto per picnic e relax con vista sugli skyline.', image: 'images/40.jpg', maps: 'https://maps.google.com/?q=Sheep+Meadow+Central+Park' },
+                    { time: '09:56', name: 'The Mall and Literary Walk', duration: '5 min', cost: null, notes: null, description: 'The Mall è l\'unico viale rettilineo di Central Park, fiancheggiato da olmi americani. Literary Walk ospita statue di scrittori famosi.', image: 'images/41.jpg', maps: 'https://maps.google.com/?q=The+Mall+Central+Park' },
+                    { time: '10:05', name: 'Bethesda Terrace', duration: '20 min', cost: null, notes: null, description: 'Bethesda Terrace è una piazza a due livelli con soffitto decorato con piastrelle Minton, considerata il cuore architettonico di Central Park.', image: 'images/42.jpg', maps: 'https://maps.google.com/?q=Bethesda+Terrace+Central+Park' },
+                    { time: '10:30', name: 'Bethesda Fountain', duration: '10 min', cost: null, notes: null, description: 'La Fontana di Bethesda con la statua "Angelo delle Acque" è uno dei luoghi più fotografati di Central Park, simbolo di purificazione.', image: 'images/43.jpg', maps: 'https://maps.google.com/?q=Bethesda+Fountain+Central+Park' },
+                    { time: '10:42', name: 'Bow Bridge', duration: '10 min', cost: null, notes: null, description: 'Bow Bridge è uno dei sette ponti originali del parco, costruito in ghisa nel 1862. Offre viste romantiche sul lago e sullo skyline.', image: 'images/44.jpg', maps: 'https://maps.google.com/?q=Bow+Bridge+Central+Park' },
+                    { time: '10:54', name: 'Imagine Mosaic', duration: '10 min', cost: null, notes: 'Tributo a John Lennon', description: 'Mosaico circolare con la scritta "Imagine" in onore di John Lennon, situato nello Strawberry Fields Memorial di fronte al Dakota Building.', image: 'images/45.jpg', maps: 'https://maps.google.com/?q=Imagine+Mosaic+Strawberry+Fields+Central+Park' },
+                    { time: '11:22', name: 'American Museum Natural History', duration: '2 h', cost: '$60.00', notes: 'PRENOTATO 11:30', description: 'Uno dei musei di scienze naturali più grandi al mondo, famoso per i diorami, lo scheletro di T-Rex, la sala delle gemme e il planetario. Location del film "Una notte al museo".', image: 'images/46.jpg', maps: 'https://maps.google.com/?q=American+Museum+of+Natural+History+New+York' },
+                    { time: '13:30', name: 'Pranzo', duration: '1 h', cost: null, notes: null, description: 'Pausa pranzo nella zona dell\'Upper West Side, con numerose opzioni tra caffetterie e ristoranti.', image: 'images/pranzo.jpg', maps: null },
+                    { time: '14:30', name: 'Belvedere Castle', duration: '20 min', cost: null, notes: null, description: 'Castello in miniatura vittoriano costruito nel 1869, offre una delle migliori viste panoramiche su Central Park e ospita una stazione meteorologica.', image: 'images/47.jpg', maps: 'https://maps.google.com/?q=Belvedere+Castle+Central+Park' },
+                    { time: '15:00', name: 'Great Lawn', duration: '10 min', cost: null, notes: null, description: 'The Great Lawn è un prato di 22 ettari nel cuore di Central Park, sede di concerti famosi e luogo perfetto per osservare lo skyline.', image: 'images/48.jpg', maps: 'https://maps.google.com/?q=Great+Lawn+Central+Park' },
+                    { time: '15:28', name: 'The Obelisk', duration: '5 min', cost: null, notes: null, description: 'Obelisco egiziano autentico del 1450 a.C., chiamato "Cleopatra\'s Needle", donato all\'America dall\'Egitto nel 1881.', image: 'images/49.jpg', maps: 'https://maps.google.com/?q=Cleopatra+Needle+Central+Park' },
+                    { time: '15:41', name: 'Metropolitan Museum of Art', duration: '3 h', cost: '$60.00', notes: 'PRENOTATO 16:00', description: 'Il Met è il museo d\'arte più grande degli Stati Uniti, con oltre 2 milioni di opere che coprono 5000 anni di storia dell\'arte mondiale.', image: 'images/50.jpg', maps: 'https://maps.google.com/?q=Metropolitan+Museum+of+Art+New+York' },
+                    { time: '19:00', name: 'McGee\'s (HIMYM)', duration: '5 min', cost: null, notes: 'How I Met Your Mother pub', description: 'McGee\'s Pub è il bar che ha ispirato il MacLaren\'s nella serie TV "How I Met Your Mother". Pub irlandese autentico con atmosfera accogliente.', image: 'images/51.jpg', maps: 'https://maps.google.com/?q=McGee+Pub+New+York' },
+                    { time: '19:40', name: 'Rientro Hotel Edison', duration: '1 h', cost: null, notes: null, description: 'Rientro all\'Hotel Edison dopo una giornata intensa tra arte, natura e cultura.', image: 'images/hotel.jpg', maps: 'https://maps.google.com/?q=Hotel+Edison+New+York' },
+                    { time: '21:00', name: 'Speakeasy/Rooftop', duration: null, cost: null, notes: null, description: 'Serata in uno dei rooftop bar caratteristici di Manhattan con vista panoramica sulla città illuminata.', image: 'images/rooftop.jpg', maps: null },
+                    { time: '22:00', name: 'Cena', duration: null, cost: null, notes: null, description: 'Cena tardiva in uno dei ristoranti di Midtown Manhattan.', image: 'images/cena.jpg', maps: null },
+                    { time: '23:30', name: 'Rientro Hotel', duration: null, cost: null, notes: 'Costo giornata: $120.00', description: 'Fine della quinta giornata a New York, rientro in hotel.', image: 'images/hotel.jpg', maps: 'https://maps.google.com/?q=Hotel+Edison+New+York' }
+                ]
+            },
+            {
+                day: 'Domenica 8 Marzo 2026',
+                locations: [
+                    { time: '08:00', name: 'Colazione hotel', duration: '30 min', cost: null, notes: null, description: 'Colazione all\'Hotel Edison prima di una giornata dedicata all\'arte moderna e all\'Upper East Side.', image: 'images/colazione.jpg', maps: null },
+                    { time: '09:00', name: 'Passeggiata fino al MoMA', duration: null, cost: null, notes: null, description: 'Passeggiata mattutina attraverso Midtown Manhattan verso il Museum of Modern Art.', image: 'images/52.jpg', maps: null },
+                    { time: '10:30', name: 'MoMA', duration: null, cost: null, notes: 'PRENOTATO 10:30', description: 'Il Museum of Modern Art è uno dei musei d\'arte moderna più influenti al mondo, con opere di Van Gogh, Picasso, Warhol e Monet. Include la famosa "Notte stellata".', image: 'images/53.jpg', maps: 'https://maps.google.com/?q=MoMA+Museum+of+Modern+Art+New+York' },
+                    { time: '13:00', name: 'Pranzo Upper East Side', duration: null, cost: null, notes: null, description: 'Pranzo nell\'elegante quartiere dell\'Upper East Side, zona residenziale più esclusiva di Manhattan.', image: 'images/pranzo.jpg', maps: null },
+                    { time: '14:30', name: 'Passeggiata Upper East Side', duration: null, cost: null, notes: null, description: 'Passeggiata nell\'Upper East Side tra Madison Avenue, Park Avenue e le eleganti townhouse storiche del quartiere.', image: 'images/54.jpg', maps: 'https://maps.google.com/?q=Upper+East+Side+Manhattan' },
+                    { time: '15:30', name: 'Arconia Building', duration: null, cost: null, notes: 'Only Murders in the Building', description: 'Il Belnord Building (chiamato Arconia nella serie) è un edificio storico del 1908 in stile Beaux-Arts, location della serie "Only Murders in the Building".', image: 'images/55.jpg', maps: 'https://maps.google.com/?q=Belnord+Building+New+York' },
+                    { time: '16:30', name: 'Roosevelt Island', duration: null, cost: null, notes: null, description: 'Isola stretta nel East River tra Manhattan e Queens, con panorami unici sulla skyline, parchi e architetture moderne.', image: 'images/56.jpg', maps: 'https://maps.google.com/?q=Roosevelt+Island+New+York' },
+                    { time: '17:00', name: 'Roosevelt Island Tramway', duration: null, cost: null, notes: 'Funivia panoramica', description: 'La funivia di Roosevelt Island è l\'unico sistema di trasporto aereo di New York, offre viste spettacolari su Manhattan, il ponte di Queensboro e l\'East River.', image: 'images/57.jpg', maps: 'https://maps.google.com/?q=Roosevelt+Island+Tramway' },
+                    { time: '19:00', name: 'Rientro Hotel', duration: null, cost: null, notes: null, description: 'Rientro all\'Hotel Edison dopo l\'esplorazione dell\'Upper East Side e Roosevelt Island.', image: 'images/hotel.jpg', maps: 'https://maps.google.com/?q=Hotel+Edison+New+York' },
+                    { time: '21:00', name: 'Cena', duration: null, cost: null, notes: null, description: 'Cena serale per concludere la sesta giornata del viaggio a New York.', image: 'images/cena.jpg', maps: null }
+                ]
+            },
+            {
+                day: 'Lunedì 9 Marzo 2026',
+                locations: [
+                    { time: '08:00', name: 'Colazione hotel', duration: '30 min', cost: null, notes: null, description: 'Colazione all\'hotel prima di visitare Hudson Yards e la zona di SoHo.', image: 'images/colazione.jpg', maps: null },
+                    { time: '08:37', name: 'Metro Hotel → The Edge', duration: null, cost: null, notes: null, description: 'Spostamento in metropolitana verso Hudson Yards, il nuovo quartiere ultramoderno di Manhattan.', image: 'images/metro.jpg', maps: null },
+                    { time: '09:00', name: 'The Edge', duration: '1:30 h', cost: null, notes: 'PRENOTATO 09:00', description: 'The Edge è il ponte di osservazione all\'aperto più alto dell\'emisfero occidentale (335m), con pavimento di vetro e pareti inclinate per vista mozzafiato su Manhattan.', image: 'images/58.jpg', maps: 'https://maps.google.com/?q=The+Edge+Hudson+Yards+New+York' },
+                    { time: '11:00', name: 'The Vessel', duration: '10 min', cost: null, notes: null, description: 'Struttura architettonica a nido d\'ape progettata da Thomas Heatherwick, con 154 scale interconnesse e 2.500 gradini. Icona di Hudson Yards.', image: 'images/59.jpg', maps: 'https://maps.google.com/?q=The+Vessel+Hudson+Yards' },
+                    { time: '11:30', name: 'High Line', duration: '30 min', cost: null, notes: 'Parco sopraelevato', description: 'La High Line è un parco lineare sopraelevato creato su una ex linea ferroviaria. 2,3 km di giardini, arte e architettura tra Chelsea e Hudson Yards.', image: 'images/60.jpg', maps: 'https://maps.google.com/?q=High+Line+Park+New+York' },
+                    { time: '12:15', name: 'Little Island', duration: '30 min', cost: null, notes: null, description: 'Parco pubblico galleggiante sul fiume Hudson, aperto nel 2021. Struttura innovativa con 132 tulipani di cemento, anfiteatro e giardini rigogliosi.', image: 'images/61.jpg', maps: 'https://maps.google.com/?q=Little+Island+New+York' },
+                    { time: '12:50', name: '90 Bedford St.', duration: null, cost: null, notes: 'Friends - Casa di Monica', description: 'Edificio in mattoni rossi che rappresenta l\'esterno dell\'appartamento di Monica Geller nella serie TV Friends. Location iconica per i fan della serie.', image: 'images/62.jpg', maps: 'https://maps.google.com/?q=90+Bedford+Street+New+York' },
+                    { time: '13:15', name: 'Metro Little Island → Little Italy', duration: null, cost: null, notes: null, description: 'Spostamento in metropolitana verso il quartiere di Tribeca per visitare location cinematografiche.', image: 'images/metro.jpg', maps: null },
+                    { time: '13:45', name: 'Ghost Busters HQ', duration: '15 min', cost: null, notes: 'Caserma Ghostbusters', description: 'Hook & Ladder Company 8 è la vera caserma dei pompieri usata come location esterna nel film Ghostbusters. Edificio storico del 1903 a Tribeca.', image: 'images/63.jpg', maps: 'https://maps.google.com/?q=Ghostbusters+Firehouse+New+York' },
+                    { time: '14:10', name: 'SoHo - Greene Street', duration: null, cost: null, notes: null, description: 'Greene Street è famosa per i suoi edifici in ghisa del XIX secolo, gallerie d\'arte e boutique di lusso. Cuore storico del quartiere SoHo.', image: 'images/64.jpg', maps: 'https://maps.google.com/?q=Greene+Street+SoHo+New+York' },
+                    { time: '14:30', name: 'Broadway', duration: null, cost: null, notes: null, description: 'Broadway attraversa SoHo con negozi di grandi marchi, architettura storica in ghisa e atmosfera vibrante dello shopping newyorkese.', image: 'images/65.jpg', maps: 'https://maps.google.com/?q=Broadway+SoHo+New+York' },
+                    { time: '15:00', name: 'Pranzo', duration: '1 h', cost: null, notes: null, description: 'Pausa pranzo in uno dei tanti ristoranti trendy e caffetterie di SoHo.', image: 'images/pranzo.jpg', maps: null },
+                    { time: '16:00', name: 'Prince Street', duration: null, cost: null, notes: null, description: 'Prince Street è una delle strade principali di SoHo, con boutique indipendenti, negozi di design e architettura industriale convertita.', image: 'images/66.jpg', maps: 'https://maps.google.com/?q=Prince+Street+SoHo+New+York' },
+                    { time: '16:20', name: 'Mercer Street', duration: null, cost: null, notes: null, description: 'Mercer Street ospita hotel boutique, ristoranti alla moda e negozi di design nel cuore di SoHo.', image: 'images/67.jpg', maps: 'https://maps.google.com/?q=Mercer+Street+SoHo+New+York' },
+                    { time: '16:40', name: 'Wooster Street', duration: null, cost: null, notes: null, description: 'Wooster Street è famosa per le gallerie d\'arte contemporanea e gli edifici storici in ghisa perfettamente conservati.', image: 'images/68.jpg', maps: 'https://maps.google.com/?q=Wooster+Street+SoHo+New+York' },
+                    { time: '17:00', name: 'Spring Street', duration: null, cost: null, notes: null, description: 'Spring Street è un\'arteria principale di SoHo con negozi di moda, street art e l\'iconica stazione della metropolitana con colonne in ghisa.', image: 'images/69.jpg', maps: 'https://maps.google.com/?q=Spring+Street+SoHo+New+York' },
+                    { time: '19:00', name: 'Rientro Hotel Edison', duration: '30 min', cost: null, notes: null, description: 'Rientro all\'Hotel Edison dopo l\'esplorazione di Hudson Yards e SoHo.', image: 'images/hotel.jpg', maps: 'https://maps.google.com/?q=Hotel+Edison+New+York' },
+                    { time: '21:00', name: 'Cena', duration: null, cost: null, notes: null, description: 'Cena serale in uno dei ristoranti di Manhattan.', image: 'images/cena.jpg', maps: null },
+                    { time: '23:00', name: 'Rientro Hotel', duration: null, cost: null, notes: null, description: 'Fine della settima giornata a New York, rientro in hotel.', image: 'images/hotel.jpg', maps: 'https://maps.google.com/?q=Hotel+Edison+New+York' }
+                ]
+            },
+            {
+                day: 'Martedì 10 Marzo 2026',
+                locations: [
+                    { time: '08:00', name: 'Colazione hotel', duration: '30 min', cost: null, notes: null, description: 'Ultima colazione all\'Hotel Edison prima della partenza per l\'Italia.', image: 'images/colazione.jpg', maps: null },
+                    { time: '09:00', name: 'Shopping sotto Hotel', duration: null, cost: null, notes: 'Ultimi acquisti', description: 'Ultimi acquisti di souvenir e prodotti tipici americani nei negozi intorno a Times Square.', image: 'images/shopping.jpg', maps: null },
+                    { time: '11:00', name: 'Sistemazione Bagagli', duration: null, cost: null, notes: 'Check-out', description: 'Check-out dall\'Hotel Edison e preparazione dei bagagli per il viaggio di ritorno.', image: 'images/70.jpg', maps: 'https://maps.google.com/?q=Hotel+Edison+New+York' },
+                    { time: '13:00', name: 'Partenza per Aeroporto JFK', duration: null, cost: null, notes: 'Fine del viaggio', description: 'Partenza dall\'hotel verso l\'aeroporto JFK per il volo di ritorno in Italia. Fine di un\'avventura indimenticabile a New York!', image: 'images/71.jpg', maps: 'https://maps.google.com/?q=JFK+Airport+New+York' }
+                ]
+            }
+        ];
+
+        let currentView = 'home';
+        let currentDay = 0;
+        let currentLocation = 0;
+
+        const departureDate = new Date('2026-03-03T04:30:00');
+        const returnDate = new Date('2026-03-10T09:30:00');
+
+        function updateCountdown() {
+            const now = new Date();
+            const labelEl = document.getElementById('countdownLabel');
+
+            if (now < departureDate) {
+                const diff = departureDate - now;
+                labelEl.textContent = 'Partenza tra';
+
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const secs = Math.floor((diff % (1000 * 60)) / 1000);
+
+                document.getElementById('days').textContent = days;
+                document.getElementById('hours').textContent = hours;
+                document.getElementById('mins').textContent = mins;
+                document.getElementById('secs').textContent = secs;
+            } else if (now >= departureDate && now <= returnDate) {
+                const diff = returnDate - now;
+                labelEl.textContent = 'Ritorno tra';
+
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const secs = Math.floor((diff % (1000 * 60)) / 1000);
+
+                document.getElementById('days').textContent = days;
+                document.getElementById('hours').textContent = hours;
+                document.getElementById('mins').textContent = mins;
+                document.getElementById('secs').textContent = secs;
+            } else {
+                const diff = now - returnDate;
+                labelEl.textContent = 'Ricordi del viaggio';
+
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const secs = Math.floor((diff % (1000 * 60)) / 1000);
+
+                document.getElementById('days').textContent = days;
+                document.getElementById('hours').textContent = hours;
+                document.getElementById('mins').textContent = mins;
+                document.getElementById('secs').textContent = secs;
+            }
+        }
+
+        function getCurrentEvent() {
+            const now = new Date();
+
+            for (let dayIndex = 0; dayIndex < itineraries.length; dayIndex++) {
+                const dayData = itineraries[dayIndex];
+
+                const dayParts = dayData.day.match(/(\d+)\s+(\w+)\s+(\d{4})/);
+                if (!dayParts) continue;
+
+                const monthMap = {
+                    'Gennaio': 0, 'Febbraio': 1, 'Marzo': 2, 'Aprile': 3,
+                    'Maggio': 4, 'Giugno': 5, 'Luglio': 6, 'Agosto': 7,
+                    'Settembre': 8, 'Ottobre': 9, 'Novembre': 10, 'Dicembre': 11
+                };
+
+                const day = parseInt(dayParts[1]);
+                const month = monthMap[dayParts[2]];
+                const year = parseInt(dayParts[3]);
+                const dayDate = new Date(year, month, day);
+
+                if (now.getFullYear() === dayDate.getFullYear() &&
+                    now.getMonth() === dayDate.getMonth() &&
+                    now.getDate() === dayDate.getDate()) {
+
+                    const currentTimeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+                    for (let i = 0; i < dayData.locations.length; i++) {
+                        const loc = dayData.locations[i];
+                        const nextLoc = dayData.locations[i + 1];
+
+                        if (nextLoc && currentTimeStr >= loc.time && currentTimeStr < nextLoc.time) {
+                            return { type: 'current', event: loc, dayIndex: dayIndex };
+                        } else if (!nextLoc && currentTimeStr >= loc.time) {
+                            return { type: 'current', event: loc, dayIndex: dayIndex };
+                        } else if (currentTimeStr < loc.time) {
+                            return { type: 'next', event: loc, dayIndex: dayIndex };
+                        }
+                    }
+                }
+            }
+
+            if (now < departureDate) {
+                return { type: 'before', event: null, dayIndex: -1 };
+            } else {
+                return { type: 'after', event: null, dayIndex: -1 };
+            }
+        }
+
+        function updateCurrentEvent() {
+            const result = getCurrentEvent();
+            const titleEl = document.getElementById('currentEventTitle');
+            const nameEl = document.getElementById('currentDayName');
+            const dateEl = document.getElementById('currentDayDate');
+            const mapsButtonEl = document.getElementById('currentEventMapsButton');
+            const containerEl = document.querySelector('.container');
+
+            // Update background image on whole home
+            if (result.type === 'current' || result.type === 'next') {
+                if (result.event.image) {
+                    containerEl.style.setProperty('--home-bg-image', `url('${result.event.image}')`);
+                } else {
+                    containerEl.style.setProperty('--home-bg-image', 'none');
+                }
+                
+                // Show Maps button if available
+                if (result.event.maps) {
+                    mapsButtonEl.innerHTML = `
+                        <button class="maps-btn" onclick="window.open('${result.event.maps}', '_blank')" style="margin-top: 15px;">
+                            <span>Apri in Google Maps</span>
+                        </button>
+                    `;
+                } else {
+                    mapsButtonEl.innerHTML = '';
+                }
+            } else {
+                containerEl.style.setProperty('--home-bg-image', 'none');
+                mapsButtonEl.innerHTML = '';
+            }
+
+            if (result.type === 'current') {
+                titleEl.textContent = 'In corso adesso';
+                nameEl.textContent = result.event.name;
+                dateEl.textContent = `${result.event.time}${result.event.duration ? ' - ' + result.event.duration : ''}`;
+            } else if (result.type === 'next') {
+                titleEl.textContent = 'Prossima attività';
+                nameEl.textContent = result.event.name;
+                dateEl.textContent = `Ore ${result.event.time}`;
+            } else if (result.type === 'before') {
+                titleEl.textContent = 'Prossimo viaggio';
+                nameEl.textContent = 'New York City';
+                const daysUntil = Math.ceil((departureDate - new Date()) / (1000 * 60 * 60 * 24));
+                dateEl.textContent = `Partenza tra ${daysUntil} giorni`;
+            } else {
+                titleEl.textContent = 'Viaggio terminato';
+                nameEl.textContent = 'Grazie New York!';
+                dateEl.textContent = '3-10 Marzo 2026';
+            }
+        }
+
+        function showDay(dayIndex) {
+            currentDay = dayIndex;
+            currentView = 'itinerary';
+
+            const dayData = itineraries[dayIndex];
+
+            let html = `
+                <div class="view-header">
+                    <button class="back-btn" onclick="goHome()">←</button>
+                    <div style="flex: 1;">
+                        <div class="view-title">${dayData.day.split(' ').slice(0, 3).join(' ')}</div>
+                        <div class="view-subtitle">${dayData.locations.length} Tappe</div>
+                    </div>
+                </div>
+                <div class="timeline">
+            `;
+
+            dayData.locations.forEach((location, index) => {
+                html += `
+                    <div class="timeline-item" onclick="showDetail(${dayIndex}, ${index})">
+                        <div class="timeline-card">
+                            <div class="timeline-time">${location.time}${location.duration ? ' - ' + location.duration : ''}</div>
+                            <div class="timeline-title">${location.name}</div>
+                            ${location.notes ? `<div class="timeline-description">${location.notes}</div>` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+
+            document.getElementById('itineraryView').innerHTML = html;
+            document.getElementById('homeView').classList.add('hidden');
+            document.getElementById('itineraryView').classList.add('active');
+            document.getElementById('detailView').classList.remove('active');
+        }
+
+        function showDetail(dayIndex, locationIndex) {
+            currentDay = dayIndex;
+            currentLocation = locationIndex;
+            currentView = 'detail';
+
+            const dayData = itineraries[dayIndex];
+            const location = dayData.locations[locationIndex];
+
+            let imageHtml = '';
+            if (location.image) {
+                imageHtml = `<div class="detail-image"><img src="${location.image}" alt="${location.name}"></div>`;
+            }
+
+            let html = `
+                <div class="view-header">
+                    <button class="back-btn" onclick="backToItinerary()">←</button>
+                    <div style="flex: 1;">
+                        <div class="view-title">${location.name}</div>
+                        <div class="view-subtitle">${dayData.day.split(' ').slice(0, 3).join(' ')}</div>
+                    </div>
+                </div>
+
+                ${imageHtml}
+
+                <div class="detail-card">
+                    <div class="detail-time">${location.time}${location.duration ? ' - ' + location.duration : ''}</div>
+                    <div class="detail-title">${location.name}</div>
+                    <div class="detail-description">${location.description || ''}</div>
+
+                    <div class="detail-info">
+                        ${location.cost ? `
+                            <div class="detail-info-item">
+                                <div class="detail-info-label">Costo</div>
+                                <div class="detail-info-value">${location.cost}</div>
+                            </div>
+                        ` : ''}
+                        ${location.notes ? `
+                            <div class="detail-info-item">
+                                <div class="detail-info-label">Note</div>
+                                <div class="detail-info-value">${location.notes}</div>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+
+                ${location.maps ? `
+                    <button class="maps-btn" onclick="window.open('${location.maps}', '_blank')">
+                        <span>Apri in Google Maps</span>
+                    </button>
+                ` : ''}
+
+                <div class="navigation-pills">
+                    <button class="nav-pill" onclick="previousLocation()" ${locationIndex === 0 ? 'disabled' : ''}>Precedente</button>
+                    <button class="nav-pill" onclick="nextLocation()" ${locationIndex === dayData.locations.length - 1 ? 'disabled' : ''}>Successivo</button>
+                </div>
+
+                <div class="progress-dots">
+                    ${dayData.locations.map((_, i) => `<div class="dot ${i === locationIndex ? 'active' : ''}"></div>`).join('')}
+                </div>
+            `;
+
+            document.getElementById('detailView').innerHTML = html;
+            document.getElementById('homeView').classList.add('hidden');
+            document.getElementById('itineraryView').classList.remove('active');
+            document.getElementById('detailView').classList.add('active');
+        }
+
+        function goHome() {
+            currentView = 'home';
+            document.getElementById('homeView').classList.remove('hidden');
+            document.getElementById('itineraryView').classList.remove('active');
+            document.getElementById('detailView').classList.remove('active');
+        }
+
+        function backToItinerary() {
+            showDay(currentDay);
+        }
+
+        function nextLocation() {
+            if (currentLocation < itineraries[currentDay].locations.length - 1) {
+                showDetail(currentDay, currentLocation + 1);
+            }
+        }
+
+        function previousLocation() {
+            if (currentLocation > 0) {
+                showDetail(currentDay, currentLocation - 1);
+            }
+        }
+
+        function showEmergencyModal() {
+            document.getElementById('emergencyModal').classList.add('active');
+        }
+
+        function closeEmergencyModal() {
+            document.getElementById('emergencyModal').classList.remove('active');
+        }
+
+        function showMapModal() {
+            document.getElementById('mapModal').classList.add('active');
+        }
+
+        function closeMapModal() {
+            document.getElementById('mapModal').classList.remove('active');
+        }
+
+        updateCountdown();
+        updateCurrentEvent();
+        setInterval(() => {
+            updateCountdown();
+            updateCurrentEvent();
+        }, 1000);
+    </script>
+</body>
+</html>
