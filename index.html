@@ -1,0 +1,3419 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="apple-touch-icon" href="apple-touch-icon.jpg">
+    <link rel="icon" href="apple-touch-icon.jpg">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="NYC Trip">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+    <title>NYC Trip</title>
+    <style>
+        :root {
+            --bg-primary: #f5f5f0;
+            --bg-card: #ffffff;
+            --bg-dark: #2d2d2d;
+            --text-primary: #1a1a1a;
+            --text-secondary: #8a8a8a;
+            --text-light: #ffffff;
+            --accent: #2d2d2d;
+            --border: #e8e8e8;
+            --shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            --shadow-hover: 0 4px 20px rgba(0, 0, 0, 0.12);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-primary: #1a1a1a;
+                --bg-card: #2d2d2d;
+                --bg-dark: #f5f5f0;
+                --text-primary: #f5f5f0;
+                --text-secondary: #a0a0a0;
+                --text-light: #1a1a1a;
+                --accent: #f5f5f0;
+                --border: #404040;
+                --shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+                --shadow-hover: 0 4px 20px rgba(0, 0, 0, 0.5);
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .container::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: var(--home-bg-image, none);
+            background-size: cover;
+            background-position: center;
+            filter: blur(25px);
+            opacity: 0.25;
+            z-index: -1;
+        }
+
+        .header {
+            text-align: center;
+            padding: 30px 20px 25px;
+            margin-bottom: 25px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 400;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 300;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .countdown-section {
+            background-color: rgba(255, 255, 255, 0.85);
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(10px);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .countdown-section {
+                background-color: rgba(45, 45, 45, 0.85);
+            }
+        }
+
+        .countdown-label {
+            font-size: 10px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            margin-bottom: 10px;
+        }
+
+        .countdown-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        .countdown-item {
+            text-align: center;
+        }
+
+        .countdown-number {
+            font-size: 24px;
+            font-weight: 300;
+            display: block;
+            line-height: 1;
+            margin-bottom: 5px;
+        }
+
+        .countdown-unit {
+            font-size: 9px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .info-card {
+            background-color: rgba(255, 255, 255, 0.85);
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .info-card {
+                background-color: rgba(45, 45, 45, 0.85);
+            }
+        }
+
+        .info-card > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .info-card h2 {
+            font-size: 11px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: var(--text-secondary);
+        }
+
+        .booking-card {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background-color: rgba(245, 245, 240, 0.6);
+            border-radius: 12px;
+            margin-bottom: 15px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .booking-card {
+                background-color: rgba(26, 26, 26, 0.6);
+            }
+        }
+
+        .booking-icon {
+            width: 40px;
+            height: 40px;
+            background-color: var(--bg-dark);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .booking-details {
+            flex: 1;
+        }
+
+        .booking-title {
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 3px;
+        }
+
+        .booking-name {
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .booking-time {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .info-box {
+            background-color: var(--bg-primary);
+            padding: 10px 6px;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-width: 0;
+        }
+
+        .info-box:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .info-box-icon {
+            font-size: 20px;
+            margin-bottom: 4px;
+        }
+
+        .info-box-label {
+            font-size: 7px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-bottom: 2px;
+            line-height: 1.1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 100%;
+        }
+
+        .info-box-value {
+            font-size: 8px;
+            font-weight: 500;
+            line-height: 1.1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 100%;
+        }
+
+        .days-tabs {
+            display: flex;
+            overflow-x: auto;
+            gap: 10px;
+            margin-bottom: 25px;
+            padding-bottom: 5px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .days-tabs::-webkit-scrollbar {
+            display: none;
+        }
+
+        .day-tab {
+            background-color: var(--bg-card);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 500;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow);
+        }
+
+        .day-tab:hover {
+            box-shadow: var(--shadow-hover);
+        }
+
+        .day-tab.active {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+        }
+
+        .day-tab-date {
+            display: block;
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 3px;
+        }
+
+        .day-tab.active .day-tab-date {
+            color: var(--text-light);
+            opacity: 0.7;
+        }
+
+        .itinerary-view,
+        .detail-view {
+            display: none;
+            padding-bottom: 120px;
+        }
+
+        .itinerary-view.active,
+        .detail-view.active {
+            display: block;
+        }
+
+        .view-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 25px;
+        }
+
+        .back-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 8px;
+            color: var(--text-primary);
+        }
+
+        .view-title {
+            font-size: 18px;
+            font-weight: 500;
+            text-align: center;
+            flex: 1;
+        }
+
+        .view-subtitle {
+            font-size: 13px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 3px;
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 40px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 12px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background-color: var(--border);
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 25px;
+            cursor: pointer;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -34px;
+            top: 5px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: var(--bg-dark);
+            border: 2px solid var(--bg-primary);
+            z-index: 1;
+        }
+
+        .timeline-card {
+            background-color: var(--bg-card);
+            padding: 18px;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            transition: all 0.2s ease;
+        }
+
+        .timeline-card:hover {
+            box-shadow: var(--shadow-hover);
+            transform: translateX(2px);
+        }
+
+        .timeline-time {
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+
+        .timeline-title {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .timeline-description {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .detail-image {
+            width: 100%;
+            height: 180px;
+            background-size: cover;
+            background-position: center;
+            border-radius: 20px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .detail-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .detail-card {
+            background-color: var(--bg-card);
+            padding: 18px;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            margin-bottom: 15px;
+        }
+
+        .detail-time {
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .detail-title {
+            font-size: 20px;
+            font-weight: 400;
+            margin-bottom: 10px;
+            line-height: 1.3;
+        }
+
+        .detail-description {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .detail-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            padding-top: 15px;
+            border-top: 1px solid var(--border);
+        }
+
+        .detail-info-item {
+            flex: 1;
+            min-width: 100px;
+        }
+
+        .detail-info-label {
+            font-size: 10px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        .detail-info-value {
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .maps-btn {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            border: none;
+            padding: 14px;
+            border-radius: 14px;
+            width: 100%;
+            font-family: inherit;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .maps-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .navigation-pills {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            position: fixed;
+            bottom: 65px;
+            left: 0;
+            right: 0;
+            z-index: 10;
+            background-color: var(--bg-primary);
+            padding: 8px 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .nav-pill {
+            background-color: var(--bg-card);
+            border: none;
+            padding: 10px 25px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow);
+        }
+
+        .nav-pill:hover:not(:disabled) {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            transform: scale(1.05);
+        }
+
+        .nav-pill:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .progress-dots {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            position: fixed;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            z-index: 10;
+            background-color: var(--bg-primary);
+            padding: 10px 0;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: var(--border);
+        }
+
+        .dot.active {
+            background-color: var(--bg-dark);
+            width: 20px;
+            border-radius: 3px;
+        }
+
+        .home-view {
+            display: block;
+        }
+
+        .home-view.hidden {
+            display: none;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: var(--bg-card);
+            padding: 30px;
+            border-radius: 20px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        .modal-map {
+            max-width: 95%;
+            width: 95%;
+            height: 90vh;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .modal-close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background-color: var(--bg-card);
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 1001;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-primary);
+            transition: all 0.2s ease;
+        }
+
+        .modal-close-btn:hover {
+            transform: scale(1.1);
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+        }
+
+        .modal-checklist {
+            max-width: 95%;
+            width: 95%;
+            height: 85vh;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .checklist-header {
+            font-size: 20px;
+            font-weight: 500;
+            margin-bottom: 20px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            background-color: var(--bg-card);
+            padding: 10px 0;
+            z-index: 10;
+        }
+
+        .checklist-category {
+            margin-bottom: 25px;
+        }
+
+        .category-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .category-subtitle {
+            font-size: 14px;
+            font-weight: 500;
+            margin: 12px 0 8px 0;
+            color: var(--text-secondary);
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 5px;
+            background-color: var(--bg-primary);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .checklist-item:hover {
+            background-color: var(--border);
+        }
+
+        .checklist-item.checked {
+            opacity: 0.6;
+        }
+
+        .checklist-checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--text-secondary);
+            border-radius: 4px;
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+        }
+
+        .checklist-item.checked .checklist-checkbox {
+            background-color: var(--bg-dark);
+            border-color: var(--bg-dark);
+        }
+
+        .checklist-checkbox::after {
+            content: '✓';
+            color: var(--text-light);
+            font-size: 14px;
+            font-weight: bold;
+            display: none;
+        }
+
+        .checklist-item.checked .checklist-checkbox::after {
+            display: block;
+        }
+
+        .checklist-label {
+            font-size: 14px;
+            line-height: 1.4;
+            flex: 1;
+        }
+
+        .checklist-item.checked .checklist-label {
+            text-decoration: line-through;
+        }
+
+        .checklist-progress {
+            position: sticky;
+            top: 50px;
+            background-color: var(--bg-card);
+            padding: 10px 0;
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 13px;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border);
+            z-index: 9;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background-color: var(--border);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: var(--bg-dark);
+            transition: width 0.3s ease;
+        }
+
+        /* Map Modal Styles */
+        .modal-map-leaflet {
+            max-width: 100%;
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            border-radius: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .map-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 20px;
+            background-color: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+            z-index: 10;
+        }
+
+        .map-title {
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .map-container {
+            flex: 1;
+            position: relative;
+        }
+
+        #leafletMap {
+            width: 100%;
+            height: 100%;
+        }
+
+        .map-layers-panel {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            max-width: 200px;
+            max-height: 70vh;
+            overflow-y: auto;
+            transition: all 0.3s ease;
+        }
+
+        .map-layers-panel.collapsed {
+            padding: 8px 12px;
+            max-height: none;
+            overflow: hidden;
+        }
+
+        .map-layers-panel.collapsed #layerToggles {
+            display: none;
+        }
+
+        .layers-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+
+        .map-layers-panel.collapsed .layers-header {
+            margin-bottom: 0;
+        }
+
+        .layers-toggle-btn {
+            background: none;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            padding: 0;
+            line-height: 1;
+        }
+
+        .layers-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .layer-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 0;
+            cursor: pointer;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .layer-toggle:last-child {
+            border-bottom: none;
+        }
+
+        .layer-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .layer-name {
+            font-size: 11px;
+            flex: 1;
+            line-height: 1.3;
+        }
+
+        .layer-switch {
+            width: 28px;
+            height: 16px;
+            background-color: var(--border);
+            border-radius: 8px;
+            position: relative;
+            transition: background-color 0.2s;
+            flex-shrink: 0;
+        }
+
+        .layer-switch.active {
+            background-color: var(--bg-dark);
+        }
+
+        .layer-switch::after {
+            content: '';
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.2s;
+        }
+
+        .layer-switch.active::after {
+            transform: translateX(12px);
+        }
+
+        .map-locate-btn {
+            position: absolute;
+            bottom: 30px;
+            right: 10px;
+            z-index: 1000;
+            background: var(--bg-card);
+            border: none;
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Map Editor Panels */
+        .map-editor-panel {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 1001;
+            background: var(--bg-card);
+            padding: 20px;
+            border-radius: 16px 16px 0 0;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+        }
+
+        .map-editor-panel.active {
+            transform: translateY(0);
+        }
+
+        .map-editor-title {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+
+        .modal-choice {
+            max-width: 350px;
+            width: 90%;
+            padding: 30px;
+        }
+
+        .choice-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .choice-btn {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            border: none;
+            padding: 18px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .choice-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        /* Add/Edit Item Styles */
+        .add-item-btn {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            margin-bottom: 15px;
+            width: 100%;
+            transition: all 0.2s ease;
+        }
+
+        .add-item-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .item-input-container {
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .item-input-container.active {
+            display: block;
+        }
+
+        .item-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            background-color: var(--bg-card);
+            color: var(--text-primary);
+            margin-bottom: 10px;
+        }
+
+        .item-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .item-action-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .save-btn {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+        }
+
+        .cancel-btn {
+            background-color: var(--border);
+            color: var(--text-primary);
+        }
+
+        .delete-item-btn {
+            background: none;
+            border: none;
+            color: #ff4444;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 5px;
+            margin-left: 10px;
+        }
+
+        /* Diario Styles */
+        .diario-post {
+            background-color: var(--bg-primary);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+        }
+
+        .post-date {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .post-content {
+            font-size: 14px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        .post-delete {
+            background: none;
+            border: none;
+            color: #ff4444;
+            font-size: 12px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        /* Spese Styles */
+        .spesa-item {
+            background-color: var(--bg-primary);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .spesa-info {
+            flex: 1;
+        }
+
+        .spesa-desc {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .spesa-date {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .spesa-amounts {
+            text-align: right;
+        }
+
+        .spesa-usd {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .spesa-eur {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .total-section {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            padding: 15px;
+            border-radius: 12px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .total-label {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+
+        .total-amount {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        /* Restaurant Review Styles */
+        .restaurant-item {
+            background-color: var(--bg-primary);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+        }
+
+        .restaurant-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .restaurant-name {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .restaurant-stars {
+            color: #FFD700;
+            font-size: 18px;
+        }
+
+        .restaurant-note {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .star-rating {
+            display: flex;
+            gap: 5px;
+            margin: 10px 0;
+        }
+
+        .star {
+            font-size: 24px;
+            cursor: pointer;
+            color: #ddd;
+            transition: color 0.2s;
+        }
+
+        .star.active {
+            color: #FFD700;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 80px;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            background-color: var(--bg-card);
+            color: var(--text-primary);
+            resize: vertical;
+        }
+
+
+        .modal-header {
+            font-size: 20px;
+            font-weight: 500;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .emergency-btn {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            border: none;
+            padding: 16px;
+            border-radius: 12px;
+            width: 100%;
+            font-family: inherit;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.2s ease;
+        }
+
+        .emergency-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .emergency-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.7;
+        }
+
+        .emergency-number {
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .countdown-number {
+                font-size: 26px;
+            }
+            
+            .info-box {
+                padding: 10px 6px;
+            }
+            
+            .info-box-icon {
+                font-size: 20px;
+                margin-bottom: 4px;
+            }
+            
+            .info-box-label {
+                font-size: 7px;
+                letter-spacing: 0.3px;
+            }
+            
+            .info-box-value {
+                font-size: 8px;
+            }
+        }
+        /* PIN Screen */
+        .pin-screen {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: var(--bg-primary);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        .pin-screen.hidden {
+            display: none;
+        }
+
+        .pin-title {
+            font-size: 28px;
+            font-weight: 300;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .pin-subtitle {
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 50px;
+            text-align: center;
+        }
+
+        .pin-dots {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 40px;
+        }
+
+        .pin-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 2px solid var(--text-secondary);
+            transition: all 0.2s ease;
+        }
+
+        .pin-dot.filled {
+            background-color: var(--bg-dark);
+            border-color: var(--bg-dark);
+        }
+
+        .pin-dot.error {
+            background-color: #ff4444;
+            border-color: #ff4444;
+        }
+
+        .pin-keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            max-width: 280px;
+            width: 100%;
+        }
+
+        .pin-key {
+            aspect-ratio: 1;
+            border: none;
+            border-radius: 50%;
+            background-color: var(--bg-card);
+            font-size: 22px;
+            font-weight: 300;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            box-shadow: var(--shadow);
+            font-family: inherit;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pin-key:active {
+            transform: scale(0.92);
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+        }
+
+        .pin-key.delete {
+            font-size: 18px;
+        }
+
+        .pin-key.empty {
+            background: none;
+            box-shadow: none;
+            cursor: default;
+        }
+
+        .pin-error-msg {
+            color: #ff4444;
+            font-size: 13px;
+            margin-top: 20px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .pin-error-msg.visible {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div id="pinScreen" class="pin-screen">
+        <div class="pin-title">NEW YORK CITY</div>
+        <div class="pin-subtitle">Marzo 2026</div>
+        <div class="pin-dots">
+            <div class="pin-dot" id="dot0"></div>
+            <div class="pin-dot" id="dot1"></div>
+            <div class="pin-dot" id="dot2"></div>
+            <div class="pin-dot" id="dot3"></div>
+        </div>
+        <div class="pin-keypad">
+            <button class="pin-key" onclick="pinPress('1')">1</button>
+            <button class="pin-key" onclick="pinPress('2')">2</button>
+            <button class="pin-key" onclick="pinPress('3')">3</button>
+            <button class="pin-key" onclick="pinPress('4')">4</button>
+            <button class="pin-key" onclick="pinPress('5')">5</button>
+            <button class="pin-key" onclick="pinPress('6')">6</button>
+            <button class="pin-key" onclick="pinPress('7')">7</button>
+            <button class="pin-key" onclick="pinPress('8')">8</button>
+            <button class="pin-key" onclick="pinPress('9')">9</button>
+            <button class="pin-key empty"></button>
+            <button class="pin-key" onclick="pinPress('0')">0</button>
+            <button class="pin-key delete" onclick="pinDelete()">⌫</button>
+        </div>
+        <div class="pin-error-msg" id="pinError">PIN non corretto</div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>NEW YORK CITY</h1>
+            <p>Marzo 2026</p>
+        </div>
+
+        <div id="homeView" class="home-view">
+            <div class="countdown-section">
+                <div class="countdown-label" id="countdownLabel">Partenza tra</div>
+                <div class="countdown-grid">
+                    <div class="countdown-item">
+                        <span class="countdown-number" id="days">0</span>
+                        <span class="countdown-unit">Giorni</span>
+                    </div>
+                    <div class="countdown-item">
+                        <span class="countdown-number" id="hours">0</span>
+                        <span class="countdown-unit">Ore</span>
+                    </div>
+                    <div class="countdown-item">
+                        <span class="countdown-number" id="mins">0</span>
+                        <span class="countdown-unit">Min</span>
+                    </div>
+                    <div class="countdown-item">
+                        <span class="countdown-number" id="secs">0</span>
+                        <span class="countdown-unit">Sec</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-card" id="currentDayCard">
+                <h2>Adesso</h2>
+                <div class="booking-card">
+                    <div class="booking-details">
+                        <div class="booking-title" id="currentEventTitle">In programma</div>
+                        <div class="booking-name" id="currentDayName">Caricamento...</div>
+                        <div class="booking-time" id="currentDayDate"></div>
+                    </div>
+                </div>
+                <div id="currentEventMapsButton"></div>
+            </div>
+
+            <div class="info-card">
+                <h2>Essential Info</h2>
+                <div class="info-grid">
+                    <div class="info-box" onclick="window.open('https://drive.google.com/drive/folders/1LMPKE0qFn8b4sEKwgBTNPg22sOotYQS?usp=drive_link', '_blank')">
+                        <div class="info-box-icon">📄</div>
+                        <div class="info-box-label">DOCUMENTI</div>
+                        <div class="info-box-value">DRIVE</div>
+                    </div>
+                    <div class="info-box" onclick="showFoodChoiceModal()">
+                        <div class="info-box-icon">🍔</div>
+                        <div class="info-box-label">RISTORANTI</div>
+                        <div class="info-box-value">FOOD</div>
+                    </div>
+                    <div class="info-box" onclick="showEmergencyModal()">
+                        <div class="info-box-icon">🚨</div>
+                        <div class="info-box-label">EMERGENZA</div>
+                        <div class="info-box-value">RUBRICA</div>
+                    </div>
+                    <div class="info-box" onclick="showChecklistChoiceModal()">
+                        <div class="info-box-icon">✓</div>
+                        <div class="info-box-label">CHECKLIST</div>
+                        <div class="info-box-value">PUPI/GIO</div>
+                    </div>
+                    <div class="info-box" onclick="showDiarioModal()">
+                        <div class="info-box-icon">📖</div>
+                        <div class="info-box-label">DIARIO</div>
+                        <div class="info-box-value">NOTE</div>
+                    </div>
+                    <div class="info-box" onclick="showSpeseModal()">
+                        <div class="info-box-icon">💰</div>
+                        <div class="info-box-label">SPESE</div>
+                        <div class="info-box-value">TRACKER</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="days-tabs">
+                <button class="day-tab" onclick="showDay(0)">Mar 3 <span class="day-tab-date">Arrivo</span></button>
+                <button class="day-tab" onclick="showDay(1)">Mer 4 <span class="day-tab-date">Empire</span></button>
+                <button class="day-tab" onclick="showDay(2)">Gio 5 <span class="day-tab-date">Tour</span></button>
+                <button class="day-tab" onclick="showDay(3)">Ven 6 <span class="day-tab-date">Memorial</span></button>
+                <button class="day-tab" onclick="showDay(4)">Sab 7 <span class="day-tab-date">Central Park</span></button>
+                <button class="day-tab" onclick="showDay(5)">Dom 8 <span class="day-tab-date">MoMA</span></button>
+                <button class="day-tab" onclick="showDay(6)">Lun 9 <span class="day-tab-date">Edge</span></button>
+                <button class="day-tab" onclick="showDay(7)">Mar 10 <span class="day-tab-date">Partenza</span></button>
+            </div>
+        </div>
+
+        <div id="itineraryView" class="itinerary-view"></div>
+        <div id="detailView" class="detail-view"></div>
+    </div>
+
+    <div id="emergencyModal" class="modal" onclick="if(event.target == this) closeEmergencyModal()">
+        <div class="modal-content">
+            <div class="modal-header">Numeri di Emergenza</div>
+            <button class="emergency-btn" onclick="window.location.href='tel:12127379100'">
+                <div>
+                    <div class="emergency-label">Ambasciata Italiana</div>
+                    <div class="emergency-number">+1 212 737 9100</div>
+                </div>
+                <div style="font-size: 24px;">📞</div>
+            </button>
+            <button class="emergency-btn" onclick="window.location.href='tel:390258240628'">
+                <div>
+                    <div class="emergency-label">Assicurazione Sanitaria</div>
+                    <div class="emergency-number">+39 02 5824 0628</div>
+                </div>
+                <div style="font-size: 24px;">🏥</div>
+            </button>
+            <button class="emergency-btn" onclick="window.location.href='tel:911'">
+                <div>
+                    <div class="emergency-label">Emergenza USA</div>
+                    <div class="emergency-number">911</div>
+                </div>
+                <div style="font-size: 24px;">🚑</div>
+            </button>
+        </div>
+    </div>
+
+    <div id="mapModal" class="modal" style="padding:0; align-items:stretch; justify-content:stretch;">
+        <div class="modal-content modal-map-leaflet">
+            <div class="map-header">
+                <div class="map-title">🗺️ NYC Map</div>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <button onclick="closeMapModal(); showRestaurantsModal();" style="background: var(--bg-primary); border: none; padding: 6px 12px; border-radius: 8px; font-size: 12px; cursor: pointer; color: var(--text-primary); font-family: inherit;">⭐ Recensioni</button>
+                    <button class="modal-close-btn" style="position:relative; top:auto; right:auto;" onclick="closeMapModal()">✕</button>
+                </div>
+            </div>
+            <div class="map-container">
+                <div id="leafletMap"></div>
+                <div class="map-layers-panel" id="layersPanel">
+                    <div class="layers-header" onclick="toggleLayersPanel()">
+                        <div class="layers-title" style="margin-bottom:0;">Layer</div>
+                        <button class="layers-toggle-btn" id="layersPanelBtn">▲</button>
+                    </div>
+                    <div id="layerToggles"></div>
+                </div>
+                <button class="map-locate-btn" onclick="locateMe()" title="Mostra la mia posizione">📍</button>
+
+                <!-- Place Editor Panel -->
+                <div id="placeEditorPanel" class="map-editor-panel">
+                    <div class="map-editor-title" id="placeEditorTitle">Aggiungi tappa</div>
+                    <input type="text" id="placeNameInput" class="item-input" placeholder="Nome della tappa" style="margin-bottom:8px;">
+                    <input type="text" id="placeAddressInput" class="item-input" placeholder="Indirizzo (es: Times Square, New York)" style="margin-bottom:8px;">
+                    <input type="text" id="placeDescInput" class="item-input" placeholder="Nota (opzionale)" style="margin-bottom:12px;">
+                    <div style="font-size:11px;color:#888;margin-bottom:12px;">💡 Il geocoding trova automaticamente le coordinate dall'indirizzo</div>
+                    <div class="item-actions">
+                        <button id="savePlaceBtn" class="item-action-btn save-btn" onclick="savePlaceFromPanel()">Salva</button>
+                        <button class="item-action-btn cancel-btn" onclick="closePlaceEditorPanel()">Annulla</button>
+                    </div>
+                </div>
+
+                <!-- Add Layer Panel -->
+                <div id="addLayerPanel" class="map-editor-panel">
+                    <div class="map-editor-title">Nuovo Layer</div>
+                    <input type="text" id="newLayerNameInput" class="item-input" placeholder="Nome del layer (es: SABATO 7 MARZO)" style="margin-bottom:12px;">
+                    <div class="item-actions">
+                        <button class="item-action-btn save-btn" onclick="saveNewLayer()">Crea</button>
+                        <button class="item-action-btn cancel-btn" onclick="closeAddLayerPanel()">Annulla</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="checklistChoiceModal" class="modal" onclick="if(event.target == this) closeChecklistChoiceModal()">
+        <div class="modal-content">
+            <button class="modal-close-btn" onclick="closeChecklistChoiceModal()">✕</button>
+            <div class="checklist-header" style="margin-bottom: 25px;">Checklist</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <button onclick="openChecklist('pupi')" style="padding: 30px 15px; background: var(--bg-primary); border: none; border-radius: 12px; cursor: pointer; transition: all 0.2s; font-size: 14px; font-weight: 400; color: var(--text-primary); font-family: inherit;">
+                    <div style="font-size: 32px; margin-bottom: 8px; opacity: 0.8;">👩</div>
+                    <div style="text-transform: uppercase; letter-spacing: 1px; font-size: 12px;">PUPI</div>
+                </button>
+                <button onclick="openChecklist('gio')" style="padding: 30px 15px; background: var(--bg-primary); border: none; border-radius: 12px; cursor: pointer; transition: all 0.2s; font-size: 14px; font-weight: 400; color: var(--text-primary); font-family: inherit;">
+                    <div style="font-size: 32px; margin-bottom: 8px; opacity: 0.8;">👨</div>
+                    <div style="text-transform: uppercase; letter-spacing: 1px; font-size: 12px;">GIO</div>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="checklistModal" class="modal" onclick="if(event.target == this) closeChecklistModal()">
+        <div class="modal-content modal-checklist">
+            <button class="modal-close-btn" onclick="closeChecklistModal()">✕</button>
+            <div class="checklist-header" id="checklistHeaderTitle">Checklist</div>
+            <div class="checklist-progress">
+                <div id="checklistProgressText">0 / 0 completati</div>
+                <div class="progress-bar">
+                    <div id="checklistProgressBar" class="progress-fill" style="width: 0%"></div>
+                </div>
+            </div>
+            <div style="margin-bottom: 20px;">
+                <button onclick="addChecklistItem()" style="width: 100%; padding: 10px; background: var(--bg-primary); color: var(--text-primary); border: none; border-radius: 10px; font-weight: 400; cursor: pointer; font-size: 13px; font-family: inherit; transition: all 0.2s;">
+                    + Aggiungi elemento
+                </button>
+            </div>
+            <div id="checklistContent"></div>
+        </div>
+    </div>
+
+    <div id="checklistChoiceModal" class="modal" onclick="if(event.target == this) closeChecklistChoiceModal()">
+        <div class="modal-content modal-choice">
+            <button class="modal-close-btn" onclick="closeChecklistChoiceModal()">✕</button>
+            <div class="modal-header">Scegli Checklist</div>
+            <div class="choice-buttons">
+                <button class="choice-btn" onclick="openChecklist('pupi')">📋 PUPI</button>
+                <button class="choice-btn" onclick="openChecklist('gio')">📋 GIO</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="foodChoiceModal" class="modal" onclick="if(event.target == this) closeFoodChoiceModal()">
+        <div class="modal-content modal-choice">
+            <button class="modal-close-btn" onclick="closeFoodChoiceModal()">✕</button>
+            <div class="modal-header">Food & Shop</div>
+            <div class="choice-buttons">
+                <button class="choice-btn" onclick="showMapModal(); closeFoodChoiceModal()">📍 Mappa Ristoranti</button>
+                <button class="choice-btn" onclick="showRestaurantsModal(); closeFoodChoiceModal()">⭐ Le Mie Recensioni</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="restaurantsModal" class="modal" onclick="if(event.target == this) closeRestaurantsModal()">
+        <div class="modal-content modal-checklist" onclick="event.stopPropagation()">
+            <button class="modal-close-btn" onclick="closeRestaurantsModal()">✕</button>
+            <div class="checklist-header">Ristoranti Provati</div>
+            <div style="margin-bottom: 20px;">
+                <button class="add-item-btn" onclick="toggleAddRestaurant()">+ Aggiungi Ristorante</button>
+                <div id="addRestaurantForm" class="item-input-container">
+                    <input type="text" id="restaurantNameInput" class="item-input" placeholder="Nome ristorante">
+                    <div class="star-rating" id="restaurantStars">
+                        <span class="star" onclick="setRestaurantRating(1)">★</span>
+                        <span class="star" onclick="setRestaurantRating(2)">★</span>
+                        <span class="star" onclick="setRestaurantRating(3)">★</span>
+                        <span class="star" onclick="setRestaurantRating(4)">★</span>
+                        <span class="star" onclick="setRestaurantRating(5)">★</span>
+                    </div>
+                    <textarea id="restaurantNoteInput" class="item-input" placeholder="Note sul ristorante"></textarea>
+                    <div class="item-actions">
+                        <button class="item-action-btn save-btn" onclick="saveRestaurant()">Salva</button>
+                        <button class="item-action-btn cancel-btn" onclick="toggleAddRestaurant()">Annulla</button>
+                    </div>
+                </div>
+            </div>
+            <div id="restaurantsContent"></div>
+        </div>
+    </div>
+
+    <div id="diarioModal" class="modal" onclick="if(event.target == this) closeDiarioModal()">
+        <div class="modal-content modal-checklist" onclick="event.stopPropagation()">
+            <button class="modal-close-btn" onclick="closeDiarioModal()">✕</button>
+            <div class="checklist-header">Diario di Viaggio</div>
+            <div style="margin-bottom: 20px;">
+                <button class="add-item-btn" onclick="toggleAddPost()">+ Nuovo Post</button>
+                <div id="addPostForm" class="item-input-container">
+                    <textarea id="postContentInput" class="item-input" placeholder="Scrivi qui la tua nota..." style="min-height: 120px;"></textarea>
+                    <div class="item-actions">
+                        <button class="item-action-btn save-btn" onclick="savePost()">Salva</button>
+                        <button class="item-action-btn cancel-btn" onclick="toggleAddPost()">Annulla</button>
+                    </div>
+                </div>
+            </div>
+            <div id="diarioContent"></div>
+        </div>
+    </div>
+
+    <div id="speseModal" class="modal" onclick="if(event.target == this) closeSpeseModal()">
+        <div class="modal-content modal-checklist" onclick="event.stopPropagation()">
+            <button class="modal-close-btn" onclick="closeSpeseModal()">✕</button>
+            <div class="checklist-header">Tracker Spese</div>
+            <div style="margin-bottom: 20px;">
+                <button class="add-item-btn" onclick="toggleAddSpesa()">+ Aggiungi Spesa</button>
+                <div id="addSpesaForm" class="item-input-container">
+                    <input type="text" id="spesaDescInput" class="item-input" placeholder="Descrizione">
+                    <input type="date" id="spesaDateInput" class="item-input">
+                    <input type="number" id="spesaAmountInput" class="item-input" placeholder="Importo USD" step="0.01">
+                    <div class="item-actions">
+                        <button class="item-action-btn save-btn" onclick="saveSpesa()">Salva</button>
+                        <button class="item-action-btn cancel-btn" onclick="toggleAddSpesa()">Annulla</button>
+                    </div>
+                </div>
+            </div>
+            <div id="totalGeneral" class="total-section"></div>
+            <div id="speseContent"></div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    <script>
+        // PIN Logic
+        const CORRECT_PIN = '8367';
+        let currentPin = '';
+
+        function checkSession() {
+            const session = sessionStorage.getItem('nyc_pin_ok');
+            if (session === 'true') {
+                document.getElementById('pinScreen').classList.add('hidden');
+            }
+        }
+
+        function pinPress(digit) {
+            if (currentPin.length >= 4) return;
+            currentPin += digit;
+            updatePinDots();
+            if (currentPin.length === 4) {
+                setTimeout(checkPin, 150);
+            }
+        }
+
+        function pinDelete() {
+            currentPin = currentPin.slice(0, -1);
+            updatePinDots();
+        }
+
+        function updatePinDots() {
+            for (let i = 0; i < 4; i++) {
+                const dot = document.getElementById('dot' + i);
+                dot.classList.remove('filled', 'error');
+                if (i < currentPin.length) {
+                    dot.classList.add('filled');
+                }
+            }
+        }
+
+        function checkPin() {
+            if (currentPin === CORRECT_PIN) {
+                sessionStorage.setItem('nyc_pin_ok', 'true');
+                document.getElementById('pinScreen').classList.add('hidden');
+            } else {
+                // Wrong PIN - shake and reset
+                for (let i = 0; i < 4; i++) {
+                    document.getElementById('dot' + i).classList.add('error');
+                }
+                document.getElementById('pinError').classList.add('visible');
+                setTimeout(() => {
+                    currentPin = '';
+                    updatePinDots();
+                    document.getElementById('pinError').classList.remove('visible');
+                }, 1000);
+            }
+        }
+
+        checkSession();
+        const firebaseConfig = {
+            apiKey: "AIzaSyAwsNe7-BPjtN1BScWn9wdPCvFhnB0TeJg",
+            authDomain: "nyapp-5ebe9.firebaseapp.com",
+            projectId: "nyapp-5ebe9",
+            storageBucket: "nyapp-5ebe9.firebasestorage.app",
+            messagingSenderId: "755529507597",
+            appId: "1:755529507597:web:90a3e20e871eb36bc24644",
+            measurementId: "G-4PVQXF3SDK"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Checklist Data
+        const checklistData = [
+            {
+                title: "DOCUMENTI - BUROCRAZIA",
+                sections: [
+                    {
+                        subtitle: "A - Identità - Viaggio",
+                        items: [
+                            { id: "A01", label: "Passaporto" },
+                            { id: "A02", label: "ESTA / visto stampato + PDF (☁️)" },
+                            { id: "A03", label: "Carta d'identità" },
+                            { id: "A04", label: "Biglietti aerei + PDF" },
+                            { id: "A05", label: "Prenotazioni hotel + PDF" },
+                            { id: "A06", label: "Eventuali biglietti attrazioni / pass" }
+                        ]
+                    },
+                    {
+                        subtitle: "B - Denaro - Pagamenti",
+                        items: [
+                            { id: "B01", label: "Bancomat Fisico" },
+                            { id: "B02", label: "E-sim" },
+                            { id: "B03", label: "Contanti (USD 300,00?)" },
+                            { id: "B04", label: "Tessera RFID" }
+                        ]
+                    },
+                    {
+                        subtitle: "C - Copie di sicurezza",
+                        items: [
+                            { id: "C01", label: "Scansione dei documenti" },
+                            { id: "C02", label: "Copie cartacee separate" },
+                            { id: "C03", label: "Contatto di emergenza scritto" }
+                        ]
+                    }
+                ]
+            },
+            {
+                title: "TECNOLOGIA",
+                sections: [
+                    {
+                        subtitle: "D - Dispositivi",
+                        items: [
+                            { id: "D01", label: "iPhone" },
+                            { id: "D02", label: "Apple Watch" },
+                            { id: "D03", label: "Sony" },
+                            { id: "D04", label: "O-Clip" }
+                        ]
+                    },
+                    {
+                        subtitle: "E - Alimentazione",
+                        items: [
+                            { id: "E01", label: "Caricatore singolo" },
+                            { id: "E02", label: "Caricatore multiplo" },
+                            { id: "E03", label: "Power bank" },
+                            { id: "E04", label: "Batterie extra Sony?" },
+                            { id: "E05", label: "Cavi USB-C (3)" },
+                            { id: "E06", label: "Cavo USB-A - USB-C (2)" },
+                            { id: "E07", label: "Adattatore prese USA (tipo A/B)" },
+                            { id: "E08", label: "Doppia spina" },
+                            { id: "E09", label: "Schede SD (4)" },
+                            { id: "E10", label: "Cavo orologio" }
+                        ]
+                    }
+                ]
+            },
+            {
+                title: "ABBIGLIAMENTO",
+                sections: [
+                    {
+                        subtitle: "F - Intimo",
+                        items: [
+                            { id: "F01", label: "Mutande (10)" },
+                            { id: "F02", label: "Calze normali (5)" },
+                            { id: "F03", label: "Calze Termiche (5)" }
+                        ]
+                    },
+                    {
+                        subtitle: "G - Parte superiore",
+                        items: [
+                            { id: "G01", label: "Magliette o Maglioni (Base met) (6)" },
+                            { id: "G02", label: "Magliette termiche (4)" },
+                            { id: "G03", label: "Felpa (2)" },
+                            { id: "G04", label: "Felpa pile" }
+                        ]
+                    },
+                    {
+                        subtitle: "H - Parte inferiore",
+                        items: [
+                            { id: "H01", label: "Jeans (3)" },
+                            { id: "H02", label: "Pantaloncini (1)" },
+                            { id: "H03", label: "Pantaloni più eleganti?" }
+                        ]
+                    },
+                    {
+                        subtitle: "I - Esterni",
+                        items: [
+                            { id: "I01", label: "Giacca antivento / antipioggia (Rvrc)" },
+                            { id: "I02", label: "K-Way" },
+                            { id: "I03", label: "Sciarpa Guess" },
+                            { id: "I04", label: "Cappello" },
+                            { id: "I05", label: "Guanti pile" }
+                        ]
+                    },
+                    {
+                        subtitle: "L - Scarpe / Accessori",
+                        items: [
+                            { id: "L01", label: "Scarpe (AirForce - Autry)" },
+                            { id: "L02", label: "Scarpe (Blundstone)" },
+                            { id: "L03", label: "Ciabatte infradito" },
+                            { id: "L04", label: "Cinta?" },
+                            { id: "L05", label: "Occhiali soft (Riserva)" }
+                        ]
+                    },
+                    {
+                        subtitle: "M - Notte",
+                        items: [
+                            { id: "M01", label: "Pigiama (Grigio)" },
+                            { id: "M02", label: "Tappi per le orecchie" },
+                            { id: "M03", label: "Mascherina per dormire" }
+                        ]
+                    }
+                ]
+            },
+            {
+                title: "IGIENE PERSONALE",
+                sections: [
+                    {
+                        subtitle: "N - Base",
+                        items: [
+                            { id: "N01", label: "Spazzolino" },
+                            { id: "N02", label: "Dentifricio" },
+                            { id: "N03", label: "Deodorante" }
+                        ]
+                    },
+                    {
+                        subtitle: "O - Doccia",
+                        items: [
+                            { id: "O01", label: "Shampoo - Bagnoschiuma" },
+                            { id: "O02", label: "Spray capelli" }
+                        ]
+                    },
+                    {
+                        subtitle: "P - Farmaci",
+                        items: [
+                            { id: "P01", label: "Antidolorifico (OKY Task)" },
+                            { id: "P02", label: "Antistaminico" },
+                            { id: "P03", label: "Gaviscon" },
+                            { id: "P04", label: "Fermenti lattici" },
+                            { id: "P05", label: "Cerotti" },
+                            { id: "P06", label: "Garze" },
+                            { id: "P07", label: "Disinfettante" },
+                            { id: "P08", label: "Termometro" },
+                            { id: "P09", label: "Mascherine" },
+                            { id: "P10", label: "Gel mani" },
+                            { id: "P11", label: "Antibiotico" },
+                            { id: "P12", label: "Imodium" },
+                            { id: "P13", label: "Cerotti per vesciche" },
+                            { id: "P14", label: "Lattasi" },
+                            { id: "P15", label: "Crema cortisone occhi" }
+                        ]
+                    },
+                    {
+                        subtitle: "Q - Extra utili",
+                        items: [
+                            { id: "Q01", label: "Salviettine umidificate" },
+                            { id: "Q02", label: "Lucchetto Zaino" },
+                            { id: "Q03", label: "Sacchetti per scarpe" },
+                            { id: "Q04", label: "Sacchetto biancheria sporca" },
+                            { id: "Q05", label: "Marsupio / Sling" },
+                            { id: "Q06", label: "Ombrello compatto?" },
+                            { id: "Q07", label: "Fazzoletti" },
+                            { id: "Q08", label: "Sacchetti sotto vuoto" },
+                            { id: "Q09", label: "Borraccia leggera" },
+                            { id: "Q10", label: "Sacchetti nicotina?" },
+                            { id: "Q11", label: "Apribottiglie" }
+                        ]
+                    }
+                ]
+            }
+        ];
+
+        const itineraries = [
+            {
+                day: 'Martedì 3 Marzo 2026',
+                locations: [
+                    { time: '04:30', name: 'Uscita di casa', duration: null, cost: null, notes: null, description: 'Partenza da casa verso l\'aeroporto di Brindisi per iniziare l\'avventura a New York.', image: 'images/01.jpg', maps: null },
+                    { time: '06:10', name: 'Volo Brindisi - Roma', duration: '1:15 h', cost: null, notes: 'AZ 1620', description: 'Volo nazionale Alitalia da Brindisi a Roma Fiumicino, durata 1 ora e 15 minuti.', image: 'images/02.jpg', maps: null },
+                    { time: '07:25', name: 'Arrivo Roma Fiumicino T1', duration: null, cost: null, notes: null, description: 'Arrivo all\'aeroporto di Roma Fiumicino Terminal 1 per il check-in del volo intercontinentale.', image: 'images/03.jpg', maps: null },
+                    { time: '10:15', name: 'Volo Roma - New York', duration: '10 h', cost: null, notes: 'AZ 0608', description: 'Volo intercontinentale Alitalia da Roma a New York JFK, attraversamento dell\'Atlantico in 10 ore.', image: 'images/04.jpg', maps: null },
+                    { time: '14:15', name: 'Arrivo JFK Terminal 1', duration: null, cost: null, notes: 'Controlli e ritiro bagagli', description: 'Arrivo all\'aeroporto JFK di New York, controlli doganali e ritiro bagagli.', image: 'images/05.jpg', maps: 'https://maps.google.com/?q=JFK+Airport+Terminal+1' },
+                    { time: '15:30', name: 'JFK → Hotel Edison', duration: null, cost: '$27.50', notes: 'Taxi/Transfer', description: 'Trasferimento dall\'aeroporto JFK all\'Hotel Edison nel cuore di Manhattan, vicino a Times Square.', image: 'images/06.jpg', maps: 'https://maps.google.com/?q=Hotel+Edison+New+York' },
+                    { time: '16:45', name: 'Check-in Hotel Edison', duration: null, cost: '$321.30', notes: 'Resort Fee', description: 'Hotel Edison, storico hotel di New York situato a pochi passi da Times Square e Broadway.', image: 'images/hotel.jpg', maps: 'https://maps.google.com/?q=Hotel+Edison+New+York' },
+                    { time: '17:15', name: 'Riposo in camera', duration: null, cost: null, notes: null, description: 'Tempo di riposo in camera per recuperare dal lungo viaggio transatlantico.', image: 'images/07.jpg', maps: null },
+                    { time: '18:15', name: 'Times Square', duration: null, cost: null, notes: null, description: 'Times Square, il cuore pulsante di Manhattan. Famosa per i suoi enormi cartelloni pubblicitari luminosi, teatri di Broadway e atmosfera elettrica 24 ore su 24.', image: 'images/08.jpg', maps: 'https://maps.google.com/?q=Times+Square+New+York' },
+                    { time: '19:05', name: 'Rockefeller Center', duration: null, cost: null, notes: null, description: 'Il Rockefeller Center è un complesso commerciale Art Déco nel centro di Manhattan, famoso per la sua pista di pattinaggio e l\'albero di Natale.', image: 'images/09.jpg', maps: 'https://maps.google.com/?q=Rockefeller+Center+New+York' },
+                    { time: '19:30', name: 'Top of the Rock', duration: '1:30 h', cost: '$142.00', notes: 'PRENOTATO 20:00', description: 'Osservatorio panoramico sulla cima del Rockefeller Center. Offre una vista spettacolare a 360° su Manhattan, incluso l\'Empire State Building e Central Park.', image: 'images/10.jpg', maps: 'https://maps.google.com/?q=Top+of+the+Rock+New+York' },
+                    { time: '21:00', name: 'Cena', duration: null, cost: null, notes: null, description: 'Cena in uno dei tanti ristoranti della zona di Midtown Manhattan.', image: 'images/cena.jpg', maps: null },
+                    { time: '22:00', name: 'Rientro Hotel Edison', duration: null, cost: null, notes: null, description: 'Rientro in hotel per riposare dopo il primo giorno nella Grande Mela.', image: 'images/hotel.jpg', maps: 'https://maps.google.com/?q=Hotel+Edison+New+York' }
+                ]
+            },
+            {
+                day: 'Mercoledì 4 Marzo 2026',
+                locations: [
+                    { time: '08:00', name: 'Colazione hotel', duration: '30 min', cost: null, notes: null, description: 'Colazione all\'Hotel Edison per iniziare la giornata con energia.', image: 'images/colazione.jpg', maps: null },
+                    { time: '08:30', name: 'Metro Hotel → Empire', duration: '15 min', cost: null, notes: null, description: 'Spostamento in metropolitana verso l\'Empire State Building nella zona di Midtown South.', image: 'images/metro.jpg', maps: null },
+                    { time: '09:00', name: 'Empire State Building 86° Piano', duration: '1 h', cost: '$88.00', notes: 'PRENOTATO 9:00', description: 'L\'Empire State Building è un grattacielo in stile Art Déco di 102 piani. L\'osservatorio all\'86° piano offre viste panoramiche incredibili su tutta New York.', image: 'images/11.jpg', maps: 'https://maps.google.com/?q=Empire+State+Building+New+York' },
+                    { time: '10:10', name: 'Madison Square Park', duration: null, cost: null, notes: null, description: 'Parco pubblico di Manhattan, famoso per le installazioni artistiche e per ospitare il primo Shake Shack. Luogo ideale per rilassarsi nel verde urbano.', image: 'images/12.jpg', maps: 'https://maps.google.com/?q=Madison+Square+Park+New+York' },
+                    { time: '10:35', name: 'Flatiron Building', duration: null, cost: null, notes: null, description: 'Il Flatiron Building è un grattacielo triangolare completato nel 1902, uno degli edifici più fotografati di New York. Il suo design unico a forma di ferro da stiro lo rende un\'icona architettonica.', image: 'images/13.jpg', maps: 'https://maps.google.com/?q=Flatiron+Building+New+York' },
+                    { time: '10:55', name: 'Harry Potter Store', duration: '20 min', cost: null, notes: null, description: 'Il più grande negozio di Harry Potter al mondo, con tre piani di merchandising, installazioni interattive e riproduzioni fedeli dal mondo magico.', image: 'images/14.jpg', maps: 'https://maps.google.com/?q=Harry+Potter+Store+New+York' },
+                    { time: '11:30', name: 'Friends Experience', duration: '1:30 h', cost: '$120.00', notes: 'PRENOTATO 11:30 - NO CITY PASS', description: 'Esperienza immersiva dedicata alla serie TV Friends. Include ricostruzioni dei set originali come l\'appartamento di Monica, il Central Perk e molto altro.', image: 'images/15.jpg', maps: 'https://maps.google.com/?q=Friends+Experience+New+York' },
+                    { time: '13:00', name: 'Bryant Park', duration: null, cost: null, notes: null, description: 'Bryant Park è un\'oasi verde nel cuore di Manhattan, circondata da grattacieli. Offre prati, aree relax, caffè e una splendida vista sulla New York Public Library.', image: 'images/16.jpg', maps: 'https://maps.google.com/?q=Bryant+Park+New+York' },
+                    { time: '13:00', name: 'Pranzo', duration: '1:30 h', cost: null, notes: null, description: 'Pausa pranzo nella zona di Midtown, con numerose opzioni di ristoranti e caffetterie.', image: 'images/pranzo.jpg', maps: null },
+                    { time: '14:30', name: 'NYC Public Library', duration: '30 min', cost: null, notes: null, description: 'La New York Public Library è una biblioteca Beaux-Arts del 1911, famosa per i suoi leoni di marmo Patience e Fortitude. Ospita sale di lettura magnifiche e mostre culturali.', image: 'images/17.jpg', maps: 'https://maps.google.com/?q=New+York+Public+Library' },
+                    { time: '15:00', name: 'Grand Central Terminal', duration: '30 min', cost: null, notes: null, description: 'Grand Central Terminal è una stazione ferroviaria storica con un soffitto a volta decorato con costellazioni. Capolavoro architettonico Beaux-Arts, è uno dei luoghi più iconici di New York.', image: 'images/18.jpg', maps: 'https://maps.google.com/?q=Grand+Central+Terminal+New+York' },
+                    { time: '15:30', name: 'Shopping', duration: null, cost: null, notes: null, description: 'Shopping nella 5th Avenue e dintorni, tra boutique di lusso e negozi iconici di New York.', image: 'images/shopping.jpg', maps: null },
+                    { time: '17:30', name: 'Summit', duration: '1:30 h', cost: '$88.00', notes: 'PRENOTATO 17:30 - NO CITY PASS', description: 'Summit One Vanderbilt è un osservatorio ultramoderno con pavimenti trasparenti e installazioni artistiche. Offre viste mozzafiato e un\'esperienza immersiva unica.', image: 'images/19.jpg', maps: 'https://maps.google.com/?q=Summit+One+Vanderbilt+New+York' },
+                    { time: '19:10', name: 'Rientro Hotel Edison', duration: null, cost: null, notes: null, description: 'Ritorno all\'Hotel Edison per rinfrescarsi prima della serata.', image: 'images/hotel.jpg', maps: 'https://maps.google.com/?q=Hotel+Edison+New+York' },
+                    { time: '21:00', name: 'Cena', duration: null, cost: null, notes: null, description: 'Cena in uno dei ristoranti caratteristici di Manhattan.', image: 'images/cena.jpg', maps: null },
+                    { time: '22:00', name: 'Speakeasy/Rooftop', duration: null, cost: null, notes: null, description: 'Serata in un rooftop bar o speakeasy, tipici locali newyorkesi con atmosfera unica.', image: 'images/rooftop.jpg', maps: null },
+                    { time: '23:30', name: 'Rientro Hotel', duration: null, cost: null, notes: 'Costo giornata: $296.00', description: 'Fine della seconda giornata a New York, rientro in hotel.', image: 'images/hotel.jpg', maps: 'https://maps.google.com/?q=Hotel+Edison+New+York' }
+                ]
+            },
+            {
+                day: 'Giovedì 5 Marzo 2026',
+                locations: [
+                    { time: '08:00', name: 'Colazione hotel', duration: '30 min', cost: null, notes: null, description: 'Colazione all\'Hotel Edison per iniziare la giornata dedicata ai quartieri esterni.', image: 'images/colazione.jpg', maps: null },
+                    { time: '09:00', name: 'Tour Guidato Bronx, Queens, Brooklyn', duration: '5 h', cost: '$150.00', notes: 'PRENOTARE', description: 'Tour guidato attraverso i tre borough più caratteristici di New York: Bronx con il suo zoo famoso, Queens multiculturale e Brooklyn con i suoi quartieri hipster.', image: 'images/20.jpg', maps: 'https://maps.app.goo.gl/1xoBLcE26vR6JxSk7' },
+                    { time: '14:00', name: 'Katz\'s Delicatessen', duration: null, cost: null, notes: null, description: 'Storica gastronomia ebraica aperta dal 1888, famosa per i pastrami sandwich e per essere stata location del film "Harry ti presento Sally".', image: 'images/21.jpg', maps: 'https://maps.app.goo.gl/THkg3HANTVF7kAVY7' },
+                    { time: '14:30', name: 'Chinatown', duration: '1:20 h', cost: null, notes: null, description: 'Chinatown di Manhattan è uno dei quartieri cinesi più grandi del mondo occidentale. Caratterizzato da negozi esotici, ristoranti autentici e mercati vivaci.', image: 'images/22.jpg', maps: 'https://maps.app.goo.gl/A9Tk8tH9YkjE4HvBA' },
+                    { time: '14:30', name: 'Canal Street', duration: '20 min', cost: null, notes: null, description: 'Canal Street è l\'arteria principale di Chinatown, famosa per i suoi mercati vivaci, negozi di souvenir e atmosfera caotica tipicamente asiatica.', image: 'images/22a.jpg', maps: 'https://maps.app.goo.gl/TbeJ72RCqqMvs1Vk7' },
+                    { time: '14:50', name: 'Mott Street', duration: '20 min', cost: null, notes: null, description: 'Mott Street è considerata il cuore storico di Chinatown, con ristoranti autentici, negozi tradizionali e templi buddisti.', image: 'images/22b.jpg', maps: 'https://maps.app.goo.gl/DmAurGyVhkG2qVF37' },
+                    { time: '15:10', name: 'Doyers Street', duration: '20 min', cost: null, notes: null, description: 'Doyers Street, conosciuta come "Bloody Angle", è una strada curva famosa per la sua storia criminale e i suoi ristoranti tradizionali.', image: 'images/22c.jpg', maps: 'https://maps.app.goo.gl/dKtdkgt8qsjvBNcs8' },
+                    { time: '15:30', name: 'Pell Street', duration: '20 min', cost: null, notes: null, description: 'Pell Street è una stretta via di Chinatown con negozi etnici, barbieri tradizionali e il famoso Nom Wah Tea Parlor, il più antico dim sum di NYC.', image: 'images/22d.jpg', maps: 'https://maps.app.goo.gl/tLCQtGZ6QCWEr5L98' },
+                    { time: '15:50', name: 'Little Italy', duration: '1 h', cost: null, notes: null, description: 'Little Italy è il quartiere italiano di Manhattan, con ristoranti tradizionali, caffè e pasticcerie. Famoso per la Festa di San Gennaro che si tiene ogni settembre.', image: 'images/23.jpg', maps: 'https://maps.app.goo.gl/ug6LCfL2ejiU1wqp7' },
+                    { time: '15:50', name: 'Mulberry Street', duration: '20 min', cost: null, notes: null, description: 'Mulberry Street è la via principale di Little Italy, fiancheggiata da ristoranti italiani storici, caffè e pasticcerie con tavolini all\'aperto.', image: 'images/23a.jpg', maps: 'https://maps.app.goo.gl/s56tbeSCJLTUc2Jr6' },
+                    { time: '16:10', name: 'Grand Street', duration: '20 min', cost: null, notes: null, description: 'Grand Street segna il confine tra Little Italy e Chinatown, con una mescolanza unica di cultura italiana e cinese.', image: 'images/23b.jpg', maps: 'https://maps.app.goo.gl/26Z8m1baKRKp5Srx7' },
+                    { time: '16:30', name: 'Hester Street', duration: '20 min', cost: null, notes: null, description: 'Hester Street è una via storica di Little Italy con edifici in mattoni del XIX secolo e negozi caratteristici del quartiere.', image: 'images/23c.jpg', maps: 'https://maps.app.goo.gl/NxtLkaxLpWgX9rM28' },
+                    { time: '17:00', name: '33 Thomas St.', duration: null, cost: null, notes: null, description: 'Edificio brutalist senza finestre costruito nel 1974, noto come "The Long Lines Building". Circondato da teorie del complotto per il suo design misterioso.', image: 'images/24.jpg', maps: 'https://maps.app.goo.gl/UBH4NQVHTyGcemVX6' },
+                    { time: '17:30', name: 'Rientro Hotel', duration: null, cost: null, notes: null, description: 'Rientro all\'Hotel Edison dopo una giornata esplorando i diversi quartieri di New York.', image: 'images/hotel.jpg', maps: 'https://maps.app.goo.gl/KVrLBXC7noMuTbrt5' },
+                    { time: '21:00', name: 'Cena', duration: null, cost: null, notes: null, description: 'Cena serale per concludere la terza giornata newyorkese.', image: 'images/cena.jpg', maps: null },
+                    { time: '22:00', name: 'Speakeasy/Rooftop', duration: null, cost: null, notes: null, description: 'Serata in uno dei caratteristici bar di Manhattan con vista panoramica.', image: 'images/rooftop.jpg', maps: null },
+                    { time: '23:30', name: 'Rientro Hotel', duration: null, cost: null, notes: null, description: 'Fine della terza giornata, rientro in hotel per riposare.', image: 'images/hotel.jpg', maps: 'https://maps.app.goo.gl/KVrLBXC7noMuTbrt5' }
+                ]
+            },
+            {
+                day: 'Venerdì 6 Marzo 2026',
+                locations: [
+                    { time: '08:00', name: 'Colazione hotel', duration: null, cost: null, notes: null, description: 'Colazione all\'hotel prima di visitare il sito del World Trade Center.', image: 'images/colazione.jpg', maps: null },
+                    { time: '08:30', name: 'Memorial 11 Settembre (Fontane)', duration: '20 min', cost: null, notes: null, description: 'Le fontane commemorative del 9/11 Memorial occupano lo spazio delle Torri Gemelle. Due vasche riflettenti con cascate dove sono incisi i nomi delle vittime.', image: 'images/25.jpg', maps: 'https://maps.google.com/?q=911+Memorial+New+York' },
+                    { time: '09:30', name: 'Memorial 11 Settembre (Museo)', duration: '1 h', cost: null, notes: 'PRENOTATO 09:30', description: 'Il Museo del 11 Settembre documenta gli eventi dell\'attacco terroristico del 2001 con artefatti, testimonianze e installazioni multimediali toccanti.', image: 'images/26.jpg', maps: 'https://maps.google.com/?q=911+Memorial+Museum+New+York' },
+                    { time: '10:30', name: 'Oculus', duration: '30 min', cost: null, notes: null, description: 'L\'Oculus è la stazione del World Trade Center progettata da Santiago Calatrava. Struttura bianca futuristica che ricorda una colomba, ospita negozi e ristoranti.', image: 'images/27.jpg', maps: 'https://maps.google.com/?q=Oculus+World+Trade+Center+New+York' },
+                    { time: '11:00', name: 'Century 21', duration: '30 min', cost: null, notes: null, description: 'Century 21 era un famoso department store di lusso a prezzi scontati. Chiuso nel 2020, la zona ora ospita altri negozi.', image: 'images/shopping.jpg', maps: null },
+                    { time: '11:30', name: 'Wall Street', duration: '5 min', cost: null, notes: null, description: 'Wall Street è il centro finanziario mondiale, sede della Borsa di New York. La strada simbolo del capitalismo americano, nel cuore del distretto finanziario.', image: 'images/28.jpg', maps: 'https://maps.google.com/?q=Wall+Street+New+York' },
+                    { time: '12:05', name: 'Toro di Wall Street', duration: '5 min', cost: null, notes: null, description: 'Charging Bull è la famosa scultura in bronzo di 3,2 tonnellate simbolo della forza finanziaria americana. Icona fotografica di Lower Manhattan.', image: 'images/29.jpg', maps: 'https://maps.google.com/?q=Charging+Bull+Wall+Street+New+York' },
+                    { time: '12:30', name: 'Ferry Staten Island', duration: null, cost: null, notes: 'PRENOTATO', description: 'Il traghetto gratuito per Staten Island offre viste spettacolari sulla Statua della Libertà, Ellis Island e lo skyline di Manhattan. Un\'esperienza imperdibile.', image: 'images/30.jpg', maps: 'https://maps.google.com/?q=Staten+Island+Ferry+Terminal' },
+                    { time: '13:45', name: 'Pranzo', duration: null, cost: null, notes: null, description: 'Pausa pranzo nella zona di Lower Manhattan o Brooklyn.', image: 'images/pranzo.jpg', maps: null },
+                    { time: '13:40', name: 'Brooklyn Bridge', duration: '1:10 h', cost: null, notes: 'Attraversamento a piedi', description: 'Il Brooklyn Bridge è uno dei ponti più iconici al mondo, completato nel 1883. L\'attraversamento pedonale offre viste mozzafiato su Manhattan e Brooklyn.', image: 'images/31.jpg', maps: 'https://maps.google.com/?q=Brooklyn+Bridge+New+York' },
+                    { time: '15:00', name: 'Dumbo + Dumbo Park', duration: '2 h', cost: null, notes: null, description: 'Dumbo (Down Under the Manhattan Bridge Overpass) è un quartiere trendy di Brooklyn con gallerie d\'arte, ristoranti e la vista iconica sul Manhattan Bridge incorniciato tra edifici in mattoni.', image: 'images/32.jpg', maps: 'https://maps.google.com/?q=Dumbo+Brooklyn+New+York' },
+                    { time: '17:00', name: 'Manhattan Bridge', duration: null, cost: null, notes: null, description: 'Il Manhattan Bridge collega Lower Manhattan a Brooklyn. Offre viste spettacolari ed è meno affollato del Brooklyn Bridge.', image: 'images/33.jpg', maps: 'https://maps.google.com/?q=Manhattan+Bridge+New+York' },
+                    { time: '18:00', name: 'Rientro Hotel', duration: null, cost: null, notes: null, description: 'Rientro all\'Hotel Edison dopo l\'esplorazione di Lower Manhattan e Brooklyn.', image: 'images/hotel.jpg', maps: 'https://maps.google.com/?q=Hotel+Edison+New+York' },
+                    { time: '21:00', name: 'Cena', duration: null, cost: null, notes: null, description: 'Cena serale in uno dei quartieri di Manhattan.', image: 'images/cena.jpg', maps: null },
+                    { time: '22:00', name: 'Speakeasy/Rooftop', duration: null, cost: null, notes: null, description: 'Serata nei caratteristici bar newyorkesi.', image: 'images/rooftop.jpg', maps: null },
+                    { time: '23:30', name: 'Rientro Hotel', duration: null, cost: null, notes: null, description: 'Fine della quarta giornata a New York.', image: 'images/hotel.jpg', maps: 'https://maps.google.com/?q=Hotel+Edison+New+York' }
+                ]
+            },
+            {
+                day: 'Sabato 7 Marzo 2026',
+                locations: [
+                    { time: '08:00', name: 'Colazione hotel', duration: '30 min', cost: null, notes: null, description: 'Colazione all\'Hotel Edison per iniziare una giornata intensa dedicata a Central Park e ai suoi musei.', image: 'images/colazione.jpg', maps: null },
+                    { time: '08:30', name: 'Rockefeller Center', duration: '5 min', cost: null, notes: null, description: 'Passaggio veloce al Rockefeller Center prima di dirigersi verso Central Park lungo la 5th Avenue.', image: 'images/09.jpg', maps: 'https://maps.google.com/?q=Rockefeller+Center+New+York' },
+                    { time: '08:42', name: '5th Avenue → Central Park', duration: null, cost: null, notes: null, description: 'Passeggiata lungo la famosa 5th Avenue, l\'arteria più elegante di Manhattan, ricca di boutique di lusso e edifici storici.', image: 'images/34.jpg', maps: 'https://maps.google.com/?q=5th+Avenue+New+York' },
+                    { time: '08:43', name: 'St. Patrick\'s Cathedral', duration: '15 min', cost: null, notes: null, description: 'La Cattedrale di San Patrizio è una chiesa neogotica costruita nel 1879, la più grande cattedrale cattolica degli Stati Uniti con le sue magnifiche vetrate colorate.', image: 'images/35.jpg', maps: 'https://maps.google.com/?q=St+Patrick+Cathedral+New+York' },
+                    { time: '09:03', name: 'Trump Tower', duration: '5 min', cost: null, notes: null, description: 'Grattacielo di 58 piani sulla 5th Avenue, sede della Trump Organization. Famoso per i suoi interni in marmo e l\'atrio con cascata.', image: 'images/36.jpg', maps: 'https://maps.google.com/?q=Trump+Tower+New+York' },
+                    { time: '09:20', name: 'Plaza Hotel', duration: '5 min', cost: null, notes: null, description: 'Iconico hotel di lusso in stile Château costruito nel 1907. Location di numerosi film tra cui "Mamma ho perso l\'aereo" e "Il Grande Gatsby".', image: 'images/37.jpg', maps: 'https://maps.google.com/?q=Plaza+Hotel+New+York' },
+                    { time: '09:30', name: 'Central Park - Noleggio Bici', duration: null, cost: null, notes: 'Inizio tour Central Park', description: 'Noleggio biciclette per esplorare i 341 ettari di Central Park, il polmone verde di Manhattan progettato da Frederick Law Olmsted.', image: 'images/38.jpg', maps: 'https://maps.google.com/?q=Central+Park+Bike+Rental+New+York' },
+                    { time: '09:30', name: 'Zoo Central Park', duration: null, cost: null, notes: null, description: 'Lo zoo di Central Park, aperto dal 1864, ospita oltre 130 specie diverse in un\'area compatta di 2,6 ettari nel cuore del parco.', image: 'images/39.jpg', maps: 'https://maps.google.com/?q=Central+Park+Zoo+New+York' },
+                    { time: '09:40', name: 'Sheep Meadow', duration: '10 min', cost: null, notes: null, description: 'Sheep Meadow è un prato di 6 ettari dove fino al 1934 pascolavano le pecore. Oggi è luogo perfetto per picnic e relax con vista sugli skyline.', image: 'images/40.jpg', maps: 'https://maps.google.com/?q=Sheep+Meadow+Central+Park' },
+                    { time: '09:56', name: 'The Mall and Literary Walk', duration: '5 min', cost: null, notes: null, description: 'The Mall è l\'unico viale rettilineo di Central Park, fiancheggiato da olmi americani. Literary Walk ospita statue di scrittori famosi.', image: 'images/41.jpg', maps: 'https://maps.google.com/?q=The+Mall+Central+Park' },
+                    { time: '10:05', name: 'Bethesda Terrace', duration: '20 min', cost: null, notes: null, description: 'Bethesda Terrace è una piazza a due livelli con soffitto decorato con piastrelle Minton, considerata il cuore architettonico di Central Park.', image: 'images/42.jpg', maps: 'https://maps.google.com/?q=Bethesda+Terrace+Central+Park' },
+                    { time: '10:30', name: 'Bethesda Fountain', duration: '10 min', cost: null, notes: null, description: 'La Fontana di Bethesda con la statua "Angelo delle Acque" è uno dei luoghi più fotografati di Central Park, simbolo di purificazione.', image: 'images/43.jpg', maps: 'https://maps.google.com/?q=Bethesda+Fountain+Central+Park' },
+                    { time: '10:42', name: 'Bow Bridge', duration: '10 min', cost: null, notes: null, description: 'Bow Bridge è uno dei sette ponti originali del parco, costruito in ghisa nel 1862. Offre viste romantiche sul lago e sullo skyline.', image: 'images/44.jpg', maps: 'https://maps.google.com/?q=Bow+Bridge+Central+Park' },
+                    { time: '10:54', name: 'Imagine Mosaic', duration: '10 min', cost: null, notes: 'Tributo a John Lennon', description: 'Mosaico circolare con la scritta "Imagine" in onore di John Lennon, situato nello Strawberry Fields Memorial di fronte al Dakota Building.', image: 'images/45.jpg', maps: 'https://maps.google.com/?q=Imagine+Mosaic+Strawberry+Fields+Central+Park' },
+                    { time: '11:22', name: 'American Museum Natural History', duration: '2 h', cost: '$60.00', notes: 'PRENOTATO 11:30', description: 'Uno dei musei di scienze naturali più grandi al mondo, famoso per i diorami, lo scheletro di T-Rex, la sala delle gemme e il planetario. Location del film "Una notte al museo".', image: 'images/46.jpg', maps: 'https://maps.google.com/?q=American+Museum+of+Natural+History+New+York' },
+                    { time: '13:30', name: 'Pranzo', duration: '1 h', cost: null, notes: null, description: 'Pausa pranzo nella zona dell\'Upper West Side, con numerose opzioni tra caffetterie e ristoranti.', image: 'images/pranzo.jpg', maps: null },
+                    { time: '14:30', name: 'Belvedere Castle', duration: '20 min', cost: null, notes: null, description: 'Castello in miniatura vittoriano costruito nel 1869, offre una delle migliori viste panoramiche su Central Park e ospita una stazione meteorologica.', image: 'images/47.jpg', maps: 'https://maps.google.com/?q=Belvedere+Castle+Central+Park' },
+                    { time: '15:00', name: 'Great Lawn', duration: '10 min', cost: null, notes: null, description: 'The Great Lawn è un prato di 22 ettari nel cuore di Central Park, sede di concerti famosi e luogo perfetto per osservare lo skyline.', image: 'images/48.jpg', maps: 'https://maps.google.com/?q=Great+Lawn+Central+Park' },
+                    { time: '15:28', name: 'The Obelisk', duration: '5 min', cost: null, notes: null, description: 'Obelisco egiziano autentico del 1450 a.C., chiamato "Cleopatra\'s Needle", donato all\'America dall\'Egitto nel 1881.', image: 'images/49.jpg', maps: 'https://maps.google.com/?q=Cleopatra+Needle+Central+Park' },
+                    { time: '15:41', name: 'Metropolitan Museum of Art', duration: '3 h', cost: '$60.00', notes: 'PRENOTATO 16:00', description: 'Il Met è il museo d\'arte più grande degli Stati Uniti, con oltre 2 milioni di opere che coprono 5000 anni di storia dell\'arte mondiale.', image: 'images/50.jpg', maps: 'https://maps.google.com/?q=Metropolitan+Museum+of+Art+New+York' },
+                    { time: '19:00', name: 'McGee\'s (HIMYM)', duration: '5 min', cost: null, notes: 'How I Met Your Mother pub', description: 'McGee\'s Pub è il bar che ha ispirato il MacLaren\'s nella serie TV "How I Met Your Mother". Pub irlandese autentico con atmosfera accogliente.', image: 'images/51.jpg', maps: 'https://maps.google.com/?q=McGee+Pub+New+York' },
+                    { time: '19:40', name: 'Rientro Hotel Edison', duration: '1 h', cost: null, notes: null, description: 'Rientro all\'Hotel Edison dopo una giornata intensa tra arte, natura e cultura.', image: 'images/hotel.jpg', maps: 'https://maps.google.com/?q=Hotel+Edison+New+York' },
+                    { time: '21:00', name: 'Speakeasy/Rooftop', duration: null, cost: null, notes: null, description: 'Serata in uno dei rooftop bar caratteristici di Manhattan con vista panoramica sulla città illuminata.', image: 'images/rooftop.jpg', maps: null },
+                    { time: '22:00', name: 'Cena', duration: null, cost: null, notes: null, description: 'Cena tardiva in uno dei ristoranti di Midtown Manhattan.', image: 'images/cena.jpg', maps: null },
+                    { time: '23:30', name: 'Rientro Hotel', duration: null, cost: null, notes: 'Costo giornata: $120.00', description: 'Fine della quinta giornata a New York, rientro in hotel.', image: 'images/hotel.jpg', maps: 'https://maps.google.com/?q=Hotel+Edison+New+York' }
+                ]
+            },
+            {
+                day: 'Domenica 8 Marzo 2026',
+                locations: [
+                    { time: '08:00', name: 'Colazione hotel', duration: '30 min', cost: null, notes: null, description: 'Colazione all\'Hotel Edison prima di una giornata dedicata all\'arte moderna e all\'Upper East Side.', image: 'images/colazione.jpg', maps: null },
+                    { time: '09:00', name: 'Passeggiata fino al MoMA', duration: null, cost: null, notes: null, description: 'Passeggiata mattutina attraverso Midtown Manhattan verso il Museum of Modern Art.', image: 'images/52.jpg', maps: null },
+                    { time: '10:30', name: 'MoMA', duration: null, cost: null, notes: 'PRENOTATO 10:30', description: 'Il Museum of Modern Art è uno dei musei d\'arte moderna più influenti al mondo, con opere di Van Gogh, Picasso, Warhol e Monet. Include la famosa "Notte stellata".', image: 'images/53.jpg', maps: 'https://maps.google.com/?q=MoMA+Museum+of+Modern+Art+New+York' },
+                    { time: '13:00', name: 'Pranzo Upper East Side', duration: null, cost: null, notes: null, description: 'Pranzo nell\'elegante quartiere dell\'Upper East Side, zona residenziale più esclusiva di Manhattan.', image: 'images/pranzo.jpg', maps: null },
+                    { time: '14:30', name: 'Passeggiata Upper East Side', duration: null, cost: null, notes: null, description: 'Passeggiata nell\'Upper East Side tra Madison Avenue, Park Avenue e le eleganti townhouse storiche del quartiere.', image: 'images/54.jpg', maps: 'https://maps.google.com/?q=Upper+East+Side+Manhattan' },
+                    { time: '15:30', name: 'Arconia Building', duration: null, cost: null, notes: 'Only Murders in the Building', description: 'Il Belnord Building (chiamato Arconia nella serie) è un edificio storico del 1908 in stile Beaux-Arts, location della serie "Only Murders in the Building".', image: 'images/55.jpg', maps: 'https://maps.google.com/?q=Belnord+Building+New+York' },
+                    { time: '16:30', name: 'Roosevelt Island', duration: null, cost: null, notes: null, description: 'Isola stretta nel East River tra Manhattan e Queens, con panorami unici sulla skyline, parchi e architetture moderne.', image: 'images/56.jpg', maps: 'https://maps.google.com/?q=Roosevelt+Island+New+York' },
+                    { time: '17:00', name: 'Roosevelt Island Tramway', duration: null, cost: null, notes: 'Funivia panoramica', description: 'La funivia di Roosevelt Island è l\'unico sistema di trasporto aereo di New York, offre viste spettacolari su Manhattan, il ponte di Queensboro e l\'East River.', image: 'images/57.jpg', maps: 'https://maps.google.com/?q=Roosevelt+Island+Tramway' },
+                    { time: '19:00', name: 'Rientro Hotel', duration: null, cost: null, notes: null, description: 'Rientro all\'Hotel Edison dopo l\'esplorazione dell\'Upper East Side e Roosevelt Island.', image: 'images/hotel.jpg', maps: 'https://maps.google.com/?q=Hotel+Edison+New+York' },
+                    { time: '21:00', name: 'Cena', duration: null, cost: null, notes: null, description: 'Cena serale per concludere la sesta giornata del viaggio a New York.', image: 'images/cena.jpg', maps: null }
+                ]
+            },
+            {
+                day: 'Lunedì 9 Marzo 2026',
+                locations: [
+                    { time: '08:00', name: 'Colazione hotel', duration: '30 min', cost: null, notes: null, description: 'Colazione all\'hotel prima di visitare Hudson Yards e la zona di SoHo.', image: 'images/colazione.jpg', maps: null },
+                    { time: '08:37', name: 'Metro Hotel → The Edge', duration: null, cost: null, notes: null, description: 'Spostamento in metropolitana verso Hudson Yards, il nuovo quartiere ultramoderno di Manhattan.', image: 'images/metro.jpg', maps: null },
+                    { time: '09:00', name: 'The Edge', duration: '1:30 h', cost: null, notes: 'PRENOTATO 09:00', description: 'The Edge è il ponte di osservazione all\'aperto più alto dell\'emisfero occidentale (335m), con pavimento di vetro e pareti inclinate per vista mozzafiato su Manhattan.', image: 'images/58.jpg', maps: 'https://maps.google.com/?q=The+Edge+Hudson+Yards+New+York' },
+                    { time: '11:00', name: 'The Vessel', duration: '10 min', cost: null, notes: null, description: 'Struttura architettonica a nido d\'ape progettata da Thomas Heatherwick, con 154 scale interconnesse e 2.500 gradini. Icona di Hudson Yards.', image: 'images/59.jpg', maps: 'https://maps.google.com/?q=The+Vessel+Hudson+Yards' },
+                    { time: '11:30', name: 'High Line', duration: '30 min', cost: null, notes: 'Parco sopraelevato', description: 'La High Line è un parco lineare sopraelevato creato su una ex linea ferroviaria. 2,3 km di giardini, arte e architettura tra Chelsea e Hudson Yards.', image: 'images/60.jpg', maps: 'https://maps.google.com/?q=High+Line+Park+New+York' },
+                    { time: '12:15', name: 'Little Island', duration: '30 min', cost: null, notes: null, description: 'Parco pubblico galleggiante sul fiume Hudson, aperto nel 2021. Struttura innovativa con 132 tulipani di cemento, anfiteatro e giardini rigogliosi.', image: 'images/61.jpg', maps: 'https://maps.google.com/?q=Little+Island+New+York' },
+                    { time: '12:50', name: '90 Bedford St.', duration: null, cost: null, notes: 'Friends - Casa di Monica', description: 'Edificio in mattoni rossi che rappresenta l\'esterno dell\'appartamento di Monica Geller nella serie TV Friends. Location iconica per i fan della serie.', image: 'images/62.jpg', maps: 'https://maps.google.com/?q=90+Bedford+Street+New+York' },
+                    { time: '13:15', name: 'Metro Little Island → Little Italy', duration: null, cost: null, notes: null, description: 'Spostamento in metropolitana verso il quartiere di Tribeca per visitare location cinematografiche.', image: 'images/metro.jpg', maps: null },
+                    { time: '13:45', name: 'Ghost Busters HQ', duration: '15 min', cost: null, notes: 'Caserma Ghostbusters', description: 'Hook & Ladder Company 8 è la vera caserma dei pompieri usata come location esterna nel film Ghostbusters. Edificio storico del 1903 a Tribeca.', image: 'images/63.jpg', maps: 'https://maps.google.com/?q=Ghostbusters+Firehouse+New+York' },
+                    { time: '14:10', name: 'SoHo - Greene Street', duration: null, cost: null, notes: null, description: 'Greene Street è famosa per i suoi edifici in ghisa del XIX secolo, gallerie d\'arte e boutique di lusso. Cuore storico del quartiere SoHo.', image: 'images/64.jpg', maps: 'https://maps.google.com/?q=Greene+Street+SoHo+New+York' },
+                    { time: '14:30', name: 'Broadway', duration: null, cost: null, notes: null, description: 'Broadway attraversa SoHo con negozi di grandi marchi, architettura storica in ghisa e atmosfera vibrante dello shopping newyorkese.', image: 'images/65.jpg', maps: 'https://maps.google.com/?q=Broadway+SoHo+New+York' },
+                    { time: '15:00', name: 'Pranzo', duration: '1 h', cost: null, notes: null, description: 'Pausa pranzo in uno dei tanti ristoranti trendy e caffetterie di SoHo.', image: 'images/pranzo.jpg', maps: null },
+                    { time: '16:00', name: 'Prince Street', duration: null, cost: null, notes: null, description: 'Prince Street è una delle strade principali di SoHo, con boutique indipendenti, negozi di design e architettura industriale convertita.', image: 'images/66.jpg', maps: 'https://maps.google.com/?q=Prince+Street+SoHo+New+York' },
+                    { time: '16:20', name: 'Mercer Street', duration: null, cost: null, notes: null, description: 'Mercer Street ospita hotel boutique, ristoranti alla moda e negozi di design nel cuore di SoHo.', image: 'images/67.jpg', maps: 'https://maps.google.com/?q=Mercer+Street+SoHo+New+York' },
+                    { time: '16:40', name: 'Wooster Street', duration: null, cost: null, notes: null, description: 'Wooster Street è famosa per le gallerie d\'arte contemporanea e gli edifici storici in ghisa perfettamente conservati.', image: 'images/68.jpg', maps: 'https://maps.google.com/?q=Wooster+Street+SoHo+New+York' },
+                    { time: '17:00', name: 'Spring Street', duration: null, cost: null, notes: null, description: 'Spring Street è un\'arteria principale di SoHo con negozi di moda, street art e l\'iconica stazione della metropolitana con colonne in ghisa.', image: 'images/69.jpg', maps: 'https://maps.google.com/?q=Spring+Street+SoHo+New+York' },
+                    { time: '19:00', name: 'Rientro Hotel Edison', duration: '30 min', cost: null, notes: null, description: 'Rientro all\'Hotel Edison dopo l\'esplorazione di Hudson Yards e SoHo.', image: 'images/hotel.jpg', maps: 'https://maps.google.com/?q=Hotel+Edison+New+York' },
+                    { time: '21:00', name: 'Cena', duration: null, cost: null, notes: null, description: 'Cena serale in uno dei ristoranti di Manhattan.', image: 'images/cena.jpg', maps: null },
+                    { time: '23:00', name: 'Rientro Hotel', duration: null, cost: null, notes: null, description: 'Fine della settima giornata a New York, rientro in hotel.', image: 'images/hotel.jpg', maps: 'https://maps.google.com/?q=Hotel+Edison+New+York' }
+                ]
+            },
+            {
+                day: 'Martedì 10 Marzo 2026',
+                locations: [
+                    { time: '08:00', name: 'Colazione hotel', duration: '30 min', cost: null, notes: null, description: 'Ultima colazione all\'Hotel Edison prima della partenza per l\'Italia.', image: 'images/colazione.jpg', maps: null },
+                    { time: '09:00', name: 'Shopping sotto Hotel', duration: null, cost: null, notes: 'Ultimi acquisti', description: 'Ultimi acquisti di souvenir e prodotti tipici americani nei negozi intorno a Times Square.', image: 'images/shopping.jpg', maps: null },
+                    { time: '11:00', name: 'Sistemazione Bagagli', duration: null, cost: null, notes: 'Check-out', description: 'Check-out dall\'Hotel Edison e preparazione dei bagagli per il viaggio di ritorno.', image: 'images/70.jpg', maps: 'https://maps.google.com/?q=Hotel+Edison+New+York' },
+                    { time: '13:00', name: 'Partenza per Aeroporto JFK', duration: null, cost: null, notes: 'Fine del viaggio', description: 'Partenza dall\'hotel verso l\'aeroporto JFK per il volo di ritorno in Italia. Fine di un\'avventura indimenticabile a New York!', image: 'images/71.jpg', maps: 'https://maps.google.com/?q=JFK+Airport+New+York' }
+                ]
+            }
+        ];
+
+        let currentView = 'home';
+        let currentDay = 0;
+        let currentLocation = 0;
+
+        const departureDate = new Date('2026-03-03T04:30:00');
+        const returnDate = new Date('2026-03-10T09:30:00');
+
+        function updateCountdown() {
+            const now = new Date();
+            const labelEl = document.getElementById('countdownLabel');
+
+            if (now < departureDate) {
+                const diff = departureDate - now;
+                labelEl.textContent = 'Partenza tra';
+
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const secs = Math.floor((diff % (1000 * 60)) / 1000);
+
+                document.getElementById('days').textContent = days;
+                document.getElementById('hours').textContent = hours;
+                document.getElementById('mins').textContent = mins;
+                document.getElementById('secs').textContent = secs;
+            } else if (now >= departureDate && now <= returnDate) {
+                const diff = returnDate - now;
+                labelEl.textContent = 'Ritorno tra';
+
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const secs = Math.floor((diff % (1000 * 60)) / 1000);
+
+                document.getElementById('days').textContent = days;
+                document.getElementById('hours').textContent = hours;
+                document.getElementById('mins').textContent = mins;
+                document.getElementById('secs').textContent = secs;
+            } else {
+                const diff = now - returnDate;
+                labelEl.textContent = 'Ricordi del viaggio';
+
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const secs = Math.floor((diff % (1000 * 60)) / 1000);
+
+                document.getElementById('days').textContent = days;
+                document.getElementById('hours').textContent = hours;
+                document.getElementById('mins').textContent = mins;
+                document.getElementById('secs').textContent = secs;
+            }
+        }
+
+        function getCurrentEvent() {
+            const now = new Date();
+
+            for (let dayIndex = 0; dayIndex < itineraries.length; dayIndex++) {
+                const dayData = itineraries[dayIndex];
+
+                const dayParts = dayData.day.match(/(\d+)\s+(\w+)\s+(\d{4})/);
+                if (!dayParts) continue;
+
+                const monthMap = {
+                    'Gennaio': 0, 'Febbraio': 1, 'Marzo': 2, 'Aprile': 3,
+                    'Maggio': 4, 'Giugno': 5, 'Luglio': 6, 'Agosto': 7,
+                    'Settembre': 8, 'Ottobre': 9, 'Novembre': 10, 'Dicembre': 11
+                };
+
+                const day = parseInt(dayParts[1]);
+                const month = monthMap[dayParts[2]];
+                const year = parseInt(dayParts[3]);
+                const dayDate = new Date(year, month, day);
+
+                if (now.getFullYear() === dayDate.getFullYear() &&
+                    now.getMonth() === dayDate.getMonth() &&
+                    now.getDate() === dayDate.getDate()) {
+
+                    const currentTimeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+                    for (let i = 0; i < dayData.locations.length; i++) {
+                        const loc = dayData.locations[i];
+                        const nextLoc = dayData.locations[i + 1];
+
+                        if (nextLoc && currentTimeStr >= loc.time && currentTimeStr < nextLoc.time) {
+                            return { type: 'current', event: loc, dayIndex: dayIndex };
+                        } else if (!nextLoc && currentTimeStr >= loc.time) {
+                            return { type: 'current', event: loc, dayIndex: dayIndex };
+                        } else if (currentTimeStr < loc.time) {
+                            return { type: 'next', event: loc, dayIndex: dayIndex };
+                        }
+                    }
+                }
+            }
+
+            if (now < departureDate) {
+                return { type: 'before', event: null, dayIndex: -1 };
+            } else {
+                return { type: 'after', event: null, dayIndex: -1 };
+            }
+        }
+
+        function updateCurrentEvent() {
+            const result = getCurrentEvent();
+            const titleEl = document.getElementById('currentEventTitle');
+            const nameEl = document.getElementById('currentDayName');
+            const dateEl = document.getElementById('currentDayDate');
+            const mapsButtonEl = document.getElementById('currentEventMapsButton');
+            const containerEl = document.querySelector('.container');
+
+            // Update background image on whole home
+            if (result.type === 'current' || result.type === 'next') {
+                if (result.event.image) {
+                    containerEl.style.setProperty('--home-bg-image', `url('${result.event.image}')`);
+                } else {
+                    containerEl.style.setProperty('--home-bg-image', 'none');
+                }
+                
+                // Show Maps button if available
+                if (result.event.maps) {
+                    mapsButtonEl.innerHTML = `
+                        <button class="maps-btn" onclick="window.open('${result.event.maps}', '_blank')" style="margin-top: 15px;">
+                            <span>Apri in Google Maps</span>
+                        </button>
+                    `;
+                } else {
+                    mapsButtonEl.innerHTML = '';
+                }
+            } else {
+                containerEl.style.setProperty('--home-bg-image', 'none');
+                mapsButtonEl.innerHTML = '';
+            }
+
+            if (result.type === 'current') {
+                titleEl.textContent = 'In corso adesso';
+                nameEl.textContent = result.event.name;
+                dateEl.textContent = `${result.event.time}${result.event.duration ? ' - ' + result.event.duration : ''}`;
+            } else if (result.type === 'next') {
+                titleEl.textContent = 'Prossima attività';
+                nameEl.textContent = result.event.name;
+                dateEl.textContent = `Ore ${result.event.time}`;
+            } else if (result.type === 'before') {
+                titleEl.textContent = 'Prossimo viaggio';
+                nameEl.textContent = 'New York City';
+                const daysUntil = Math.ceil((departureDate - new Date()) / (1000 * 60 * 60 * 24));
+                dateEl.textContent = `Partenza tra ${daysUntil} giorni`;
+            } else {
+                titleEl.textContent = 'Viaggio terminato';
+                nameEl.textContent = 'Grazie New York!';
+                dateEl.textContent = '3-10 Marzo 2026';
+            }
+        }
+
+        function showDay(dayIndex) {
+            currentDay = dayIndex;
+            currentView = 'itinerary';
+
+            const dayData = itineraries[dayIndex];
+
+            let html = `
+                <div class="view-header">
+                    <button class="back-btn" onclick="goHome()">←</button>
+                    <div style="flex: 1;">
+                        <div class="view-title">${dayData.day.split(' ').slice(0, 3).join(' ')}</div>
+                        <div class="view-subtitle">${dayData.locations.length} Tappe</div>
+                    </div>
+                </div>
+                <div class="timeline">
+            `;
+
+            dayData.locations.forEach((location, index) => {
+                html += `
+                    <div class="timeline-item" onclick="showDetail(${dayIndex}, ${index})">
+                        <div class="timeline-card">
+                            <div class="timeline-time">${location.time}${location.duration ? ' - ' + location.duration : ''}</div>
+                            <div class="timeline-title">${location.name}</div>
+                            ${location.notes ? `<div class="timeline-description">${location.notes}</div>` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+
+            document.getElementById('itineraryView').innerHTML = html;
+            document.getElementById('homeView').classList.add('hidden');
+            document.getElementById('itineraryView').classList.add('active');
+            document.getElementById('detailView').classList.remove('active');
+        }
+
+        function showDetail(dayIndex, locationIndex) {
+            currentDay = dayIndex;
+            currentLocation = locationIndex;
+            currentView = 'detail';
+
+            const dayData = itineraries[dayIndex];
+            const location = dayData.locations[locationIndex];
+
+            let imageHtml = '';
+            if (location.image) {
+                imageHtml = `<div class="detail-image"><img src="${location.image}" alt="${location.name}"></div>`;
+            }
+
+            let html = `
+                <div class="view-header">
+                    <button class="back-btn" onclick="backToItinerary()">←</button>
+                    <div style="flex: 1;">
+                        <div class="view-title">${location.name}</div>
+                        <div class="view-subtitle">${dayData.day.split(' ').slice(0, 3).join(' ')}</div>
+                    </div>
+                </div>
+
+                ${imageHtml}
+
+                <div class="detail-card">
+                    <div class="detail-time">${location.time}${location.duration ? ' - ' + location.duration : ''}</div>
+                    <div class="detail-title">${location.name}</div>
+                    <div class="detail-description">${location.description || ''}</div>
+
+                    <div class="detail-info">
+                        ${location.cost ? `
+                            <div class="detail-info-item">
+                                <div class="detail-info-label">Costo</div>
+                                <div class="detail-info-value">${location.cost}</div>
+                            </div>
+                        ` : ''}
+                        ${location.notes ? `
+                            <div class="detail-info-item">
+                                <div class="detail-info-label">Note</div>
+                                <div class="detail-info-value">${location.notes}</div>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+
+                ${location.maps ? `
+                    <button class="maps-btn" onclick="window.open('${location.maps}', '_blank')">
+                        <span>Apri in Google Maps</span>
+                    </button>
+                ` : ''}
+
+                <div class="navigation-pills">
+                    <button class="nav-pill" onclick="previousLocation()" ${locationIndex === 0 ? 'disabled' : ''}>Precedente</button>
+                    <button class="nav-pill" onclick="nextLocation()" ${locationIndex === dayData.locations.length - 1 ? 'disabled' : ''}>Successivo</button>
+                </div>
+
+                <div class="progress-dots">
+                    ${dayData.locations.map((_, i) => `<div class="dot ${i === locationIndex ? 'active' : ''}"></div>`).join('')}
+                </div>
+            `;
+
+            document.getElementById('detailView').innerHTML = html;
+            document.getElementById('homeView').classList.add('hidden');
+            document.getElementById('itineraryView').classList.remove('active');
+            document.getElementById('detailView').classList.add('active');
+        }
+
+        function goHome() {
+            currentView = 'home';
+            document.getElementById('homeView').classList.remove('hidden');
+            document.getElementById('itineraryView').classList.remove('active');
+            document.getElementById('detailView').classList.remove('active');
+        }
+
+        function backToItinerary() {
+            showDay(currentDay);
+        }
+
+        function nextLocation() {
+            if (currentLocation < itineraries[currentDay].locations.length - 1) {
+                showDetail(currentDay, currentLocation + 1);
+            }
+        }
+
+        function previousLocation() {
+            if (currentLocation > 0) {
+                showDetail(currentDay, currentLocation - 1);
+            }
+        }
+
+        function showEmergencyModal() {
+            document.getElementById('emergencyModal').classList.add('active');
+        }
+
+        function closeEmergencyModal() {
+            document.getElementById('emergencyModal').classList.remove('active');
+        }
+
+        // ============ MAP DATA ============
+        const mapLayers = [{"name":"TAPPE INTERMDIE","places":[{"name":"Apple Fifth Avenue","lat":40.7638478,"lng":-73.9729785,"desc":""},{"name":"Brooklyn Bridge Park - Pier 1","lat":40.703045,"lng":-73.9956072,"desc":""},{"name":"% Arabica","lat":40.7026045,"lng":-73.9941637,"desc":""},{"name":"Squibb Park Bridge","lat":40.7010568,"lng":-73.9963321,"desc":""},{"name":"REI","lat":40.724848,"lng":-73.9952085,"desc":"Leatherman STORE"},{"name":"MUJI Fifth Avenue","lat":40.7524878,"lng":-73.9813489,"desc":""}]},{"name":"MARTEDÌ 3 MARZO 2026","places":[{"name":"Lizzanello","lat":40.304755,"lng":18.2214681,"desc":""},{"name":"Aeroporto di Brindisi","lat":40.6567625,"lng":17.9453492,"desc":""},{"name":"Aeroporto di Roma - Fiumicino","lat":41.8034632,"lng":12.2519211,"desc":""},{"name":"Terminal 1 JFK","lat":40.6434942,"lng":-73.7902786,"desc":""},{"name":"Hotel Edison","lat":40.7597355,"lng":-73.9861511,"desc":""},{"name":"Times Square","lat":40.7579747,"lng":-73.9855426,"desc":""},{"name":"Rockefeller Center","lat":40.7587402,"lng":-73.9786736,"desc":""},{"name":"Top of the Rock","lat":40.7593495,"lng":-73.9794087,"desc":""},{"name":"Ellen's Stardust Diner","lat":40.7618723,"lng":-73.9834356,"desc":""}]},{"name":"MERCOLEDÌ 4 MARZO 2026","places":[{"name":"Empire State Building","lat":40.7484405,"lng":-73.9856644,"desc":""},{"name":"Madison Square Park","lat":40.7421951,"lng":-73.9879992,"desc":""},{"name":"Flatiron Building","lat":40.7410605,"lng":-73.9896986,"desc":""},{"name":"Harry Potter Shop","lat":40.7405933,"lng":-73.9896246,"desc":""},{"name":"The FRIENDS™ Experience","lat":40.7394044,"lng":-73.985167,"desc":""},{"name":"Bryant Park","lat":40.7535367,"lng":-73.9829529,"desc":""},{"name":"New York Public Library","lat":40.7531823,"lng":-73.9822534,"desc":""},{"name":"Grand Central Terminal","lat":40.752714,"lng":-73.9772269,"desc":""},{"name":"SUMMIT One Vanderbilt","lat":40.7527746,"lng":-73.9787253,"desc":""}]},{"name":"GIOVEDI 5 MARZO 2026","places":[{"name":"Katz's Delicatessen","lat":40.722233,"lng":-73.987429,"desc":""},{"name":"Chinatown","lat":40.7157509,"lng":-73.9970307,"desc":""},{"name":"Canal Street","lat":40.7177777,"lng":-73.9996115,"desc":""},{"name":"Little Italy","lat":40.7191413,"lng":-73.9973273,"desc":""},{"name":"Mulberry Street","lat":40.7193568,"lng":-73.9973116,"desc":""},{"name":"Ghostbusters HQ","lat":40.7195656,"lng":-74.0066124,"desc":""}]},{"name":"VENERDI 6 MARZO 2026","places":[{"name":"9/11 Memorial & Museum","lat":40.7115776,"lng":-74.0133362,"desc":""},{"name":"Oculus World Trade Center","lat":40.7115663,"lng":-74.0114261,"desc":""},{"name":"Wall Street","lat":40.7061801,"lng":-74.0091197,"desc":""},{"name":"Toro di Wall Street","lat":40.7055746,"lng":-74.0134499,"desc":""},{"name":"Staten Island Ferry","lat":40.7013332,"lng":-74.0133104,"desc":""},{"name":"Ponte di Brooklyn","lat":40.7060855,"lng":-73.9968643,"desc":""},{"name":"DUMBO House","lat":40.70362,"lng":-73.99165,"desc":""},{"name":"Ponte di Manhattan","lat":40.7074959,"lng":-73.9907742,"desc":""}]},{"name":"SABATO 7 MARZO 2026","places":[{"name":"Cattedrale di San Patrizio","lat":40.7586117,"lng":-73.9761953,"desc":""},{"name":"Trump Tower","lat":40.7624284,"lng":-73.973794,"desc":""},{"name":"Zoo di Central Park","lat":40.7677061,"lng":-73.9719906,"desc":""},{"name":"Bethesda Fountain","lat":40.7743214,"lng":-73.9708829,"desc":""},{"name":"Bow Bridge","lat":40.7757544,"lng":-73.9717784,"desc":""},{"name":"Imagine Mosaic","lat":40.7757354,"lng":-73.975207,"desc":""},{"name":"American Museum of Natural History","lat":40.7813241,"lng":-73.9739882,"desc":""},{"name":"Metropolitan Museum of Art","lat":40.7794366,"lng":-73.963244,"desc":""},{"name":"McGee's Pub","lat":40.7649602,"lng":-73.9828785,"desc":""}]},{"name":"DOMNICA 8 MARZO 2026","places":[{"name":"Museum of Modern Art","lat":40.7614327,"lng":-73.9776216,"desc":""},{"name":"The Belnord Apartments","lat":40.78836,"lng":-73.9754679,"desc":""},{"name":"Upper East Side","lat":40.7735649,"lng":-73.9565551,"desc":""},{"name":"Isola Roosevelt","lat":40.7605031,"lng":-73.9509934,"desc":""},{"name":"Roosevelt Island Tramway","lat":40.7612789,"lng":-73.9641664,"desc":""}]},{"name":"LUNEDI 9 MARZO 2026","places":[{"name":"Edge Observatory","lat":40.7534782,"lng":-74.0010393,"desc":""},{"name":"The Vessel","lat":40.7538073,"lng":-74.0021537,"desc":""},{"name":"High Line","lat":40.7479925,"lng":-74.0047649,"desc":""},{"name":"Little Island","lat":40.7420024,"lng":-74.010299,"desc":""},{"name":"SoHo","lat":40.7245908,"lng":-74.0019174,"desc":""},{"name":"Greene Street","lat":40.725813,"lng":-73.9986705,"desc":""}]},{"name":"MARTEDI 10 MARZO 2026","places":[{"name":"JFK International","lat":40.6446124,"lng":-73.7797278,"desc":""},{"name":"Aeroporto di Fiumicino","lat":41.8034632,"lng":12.2519211,"desc":""},{"name":"Brindisi","lat":40.6327732,"lng":17.9418724,"desc":""}]},{"name":"DOVE MANGIARE","places":[{"name":"Medium Rare","lat":40.7453465,"lng":-73.9786974,"desc":""},{"name":"Raising Cane's","lat":40.7573616,"lng":-73.9862806,"desc":""},{"name":"Ellen's Stardust Diner","lat":40.7618723,"lng":-73.9834356,"desc":""},{"name":"7th Street Burger","lat":40.7525357,"lng":-73.9892758,"desc":""},{"name":"Levain Bakery","lat":40.7386923,"lng":-73.9924834,"desc":""},{"name":"Magnolia Bakery","lat":40.7592883,"lng":-73.9806133,"desc":""},{"name":"Joe's Pizza","lat":40.7546795,"lng":-73.9870291,"desc":""},{"name":"Prince Street Pizza","lat":40.7230777,"lng":-73.9945444,"desc":""},{"name":"Shake Shack","lat":40.7593755,"lng":-73.9799726,"desc":""},{"name":"Chelsea Market","lat":40.7424396,"lng":-74.0061439,"desc":""},{"name":"Katz's Delicatessen","lat":40.722233,"lng":-73.987429,"desc":""},{"name":"Clinton St. Baking Co.","lat":40.721264,"lng":-73.9838497,"desc":""},{"name":"Whole Foods Market","lat":40.7238246,"lng":-73.9923102,"desc":""},{"name":"Trader Joe's","lat":40.7257485,"lng":-74.0048949,"desc":""},{"name":"Gray's Papaya","lat":40.7783878,"lng":-73.9815659,"desc":""},{"name":"The Grey Dog","lat":40.7300117,"lng":-74.0038879,"desc":""},{"name":"L'industrie Pizzeria","lat":40.7332224,"lng":-74.0049081,"desc":""},{"name":"Gotham Burger Social Club","lat":40.7200618,"lng":-73.9876172,"desc":""},{"name":"SMASHED NYC","lat":40.7336244,"lng":-74.0060899,"desc":""},{"name":"Flipper's","lat":40.7223798,"lng":-74.0035218,"desc":""},{"name":"Chip City","lat":40.7589632,"lng":-73.9793374,"desc":""},{"name":"Gnocchi on 9th","lat":40.763458,"lng":-73.9817654,"desc":""},{"name":"S'MAC","lat":40.730212,"lng":-73.983724,"desc":""},{"name":"Square Diner","lat":40.718485,"lng":-74.007253,"desc":""},{"name":"Just Salad","lat":40.7533936,"lng":-74.001055,"desc":""},{"name":"Wafels & Dinges","lat":40.7591631,"lng":-73.9854098,"desc":""},{"name":"Le Botaniste","lat":40.7513742,"lng":-73.9742256,"desc":""},{"name":"Pura Vida Miami","lat":40.74431,"lng":-73.989201,"desc":""},{"name":"Liberty Bagels","lat":40.763203,"lng":-73.972675,"desc":""},{"name":"Broad Nosh Bagels","lat":40.7880032,"lng":-73.9764545,"desc":""}]}];
+
+        // Layer colors
+        const layerColors = [
+            '#FF5252', // TAPPE INTERMDIE - rosso
+            '#FF9800', // MAR 3 - arancione
+            '#4CAF50', // MER 4 - verde
+            '#2196F3', // GIO 5 - blu
+            '#9C27B0', // VEN 6 - viola
+            '#00BCD4', // SAB 7 - ciano
+            '#FF4081', // DOM 8 - rosa
+            '#8BC34A', // LUN 9 - verde chiaro
+            '#607D8B', // MAR 10 - grigio
+            '#F9A825', // DOVE MANGIARE - giallo
+        ];
+
+        // ============ MAP FUNCTIONS ============
+        let leafletMap = null;
+        let leafletMarkers = {};
+        let layerVisibility = {};
+        let userLocationMarker = null;
+        let mapInitialized = false;
+
+        function showMapModal() {
+            document.getElementById('mapModal').classList.add('active');
+            setTimeout(() => initLeafletMap(), 150);
+        }
+
+        function closeMapModal() {
+            document.getElementById('mapModal').classList.remove('active');
+        }
+
+        async function initLeafletMap() {
+            if (mapInitialized) {
+                leafletMap.invalidateSize();
+                await loadMapDataFromFirebase();
+                return;
+            }
+
+            leafletMap = L.map('leafletMap', {
+                center: [40.7580, -73.9855],
+                zoom: 13,
+                zoomControl: false
+            });
+
+            // Minimal tile - CartoDB Positron (bianco/grigio stile Apple Maps)
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                attribution: '© OpenStreetMap © CARTO',
+                maxZoom: 19,
+                subdomains: 'abcd'
+            }).addTo(leafletMap);
+
+            L.control.zoom({ position: 'bottomleft' }).addTo(leafletMap);
+
+            await loadMapDataFromFirebase();
+            mapInitialized = true;
+        }
+
+        async function loadMapDataFromFirebase() {
+            try {
+                const doc = await db.collection('mapdata').doc('layers').get();
+                if (doc.exists) {
+                    mapLayers = doc.data().layers;
+                }
+            } catch(e) {
+                console.log('Using default map data', e);
+            }
+            refreshAllMarkers();
+            renderLayerToggles();
+        }
+
+        async function saveMapDataToFirebase() {
+            try {
+                await db.collection('mapdata').doc('layers').set({ layers: mapLayers });
+            } catch(e) {
+                console.error('Error saving map data', e);
+            }
+        }
+
+        function refreshAllMarkers() {
+            // Clear all existing markers
+            Object.values(leafletMarkers).forEach(markers => {
+                markers.forEach(m => leafletMap.removeLayer(m));
+            });
+            leafletMarkers = {};
+            layerVisibility = {};
+
+            mapLayers.forEach((layer, idx) => {
+                const color = layerColors[idx % layerColors.length];
+                leafletMarkers[idx] = [];
+                layerVisibility[idx] = layerVisibility[idx] !== false;
+
+                layer.places.forEach((place, pIdx) => {
+                    addMarkerToMap(idx, pIdx, place, color);
+                });
+            });
+        }
+
+        function addMarkerToMap(layerIdx, placeIdx, place, color) {
+            const c = color || layerColors[layerIdx % layerColors.length];
+            const marker = L.circleMarker([place.lat, place.lng], {
+                radius: 7,
+                fillColor: c,
+                color: '#fff',
+                weight: 2,
+                opacity: 1,
+                fillOpacity: 0.95
+            }).addTo(leafletMap);
+
+            const popup = `
+                <div style="font-family:-apple-system,Helvetica,sans-serif;min-width:160px;">
+                    <div style="font-weight:600;font-size:14px;margin-bottom:3px;">${place.name}</div>
+                    <div style="font-size:11px;color:#888;margin-bottom:8px;">${mapLayers[layerIdx]?.name || ''}</div>
+                    ${place.desc ? `<div style="font-size:12px;color:#555;margin-bottom:8px;">${place.desc}</div>` : ''}
+                    <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                        <a href="https://maps.apple.com/?daddr=${place.lat},${place.lng}" target="_blank"
+                           style="padding:5px 10px;background:#2d2d2d;color:#fff;border-radius:6px;font-size:11px;text-decoration:none;">
+                           🧭 Naviga
+                        </a>
+                        <button onclick="openEditPlace(${layerIdx},${placeIdx})"
+                           style="padding:5px 10px;background:#f0f0f0;color:#333;border:none;border-radius:6px;font-size:11px;cursor:pointer;">
+                           ✏️ Modifica
+                        </button>
+                        <button onclick="deletePlace(${layerIdx},${placeIdx})"
+                           style="padding:5px 10px;background:#ffeeee;color:#cc0000;border:none;border-radius:6px;font-size:11px;cursor:pointer;">
+                           🗑️ Elimina
+                        </button>
+                    </div>
+                </div>`;
+            marker.bindPopup(popup, { maxWidth: 240 });
+            if (!leafletMarkers[layerIdx]) leafletMarkers[layerIdx] = [];
+            leafletMarkers[layerIdx][placeIdx] = marker;
+
+            if (layerVisibility[layerIdx] === false) {
+                leafletMap.removeLayer(marker);
+            }
+        }
+
+        function renderLayerToggles() {
+            const container = document.getElementById('layerToggles');
+            let html = `
+                <div style="margin-bottom:10px;">
+                    <button onclick="openAddLayerPanel()" style="width:100%;padding:7px;background:var(--bg-dark);color:var(--text-light);border:none;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;">+ Nuovo Layer</button>
+                </div>`;
+
+            mapLayers.forEach((layer, idx) => {
+                const color = layerColors[idx % layerColors.length];
+                const visible = layerVisibility[idx] !== false;
+                const shortName = layer.name.length > 18 ? layer.name.substring(0,18)+'…' : layer.name;
+                html += `
+                    <div class="layer-toggle">
+                        <div class="layer-dot" style="background-color:${color};" onclick="toggleLayer(${idx})"></div>
+                        <div class="layer-name" onclick="toggleLayer(${idx})" style="flex:1;">${shortName}</div>
+                        <button onclick="openAddPlacePanel(${idx})" style="background:none;border:none;font-size:14px;cursor:pointer;padding:2px 4px;" title="Aggiungi tappa">＋</button>
+                        <button onclick="deleteLayer(${idx})" style="background:none;border:none;font-size:14px;cursor:pointer;padding:2px 4px;color:#cc0000;" title="Elimina layer">✕</button>
+                        <div class="layer-switch ${visible ? 'active' : ''}" id="switch-${idx}" onclick="toggleLayer(${idx})"></div>
+                    </div>`;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function toggleLayersPanel() {
+            const panel = document.getElementById('layersPanel');
+            const btn = document.getElementById('layersPanelBtn');
+            panel.classList.toggle('collapsed');
+            btn.textContent = panel.classList.contains('collapsed') ? '▼' : '▲';
+        }
+
+        function toggleLayer(idx) {
+            layerVisibility[idx] = !layerVisibility[idx];
+            const sw = document.getElementById('switch-' + idx);
+            if (sw) sw.classList.toggle('active', layerVisibility[idx]);
+            leafletMarkers[idx]?.forEach(m => {
+                if (m) {
+                    layerVisibility[idx] ? m.addTo(leafletMap) : leafletMap.removeLayer(m);
+                }
+            });
+        }
+
+        // ---- ADD / EDIT PLACE PANEL ----
+        let editingLayerIdx = null;
+        let editingPlaceIdx = null;
+
+        function openAddPlacePanel(layerIdx) {
+            editingLayerIdx = layerIdx;
+            editingPlaceIdx = null;
+            document.getElementById('placeEditorTitle').textContent = `Aggiungi tappa in: ${mapLayers[layerIdx].name}`;
+            document.getElementById('placeNameInput').value = '';
+            document.getElementById('placeAddressInput').value = '';
+            document.getElementById('placeDescInput').value = '';
+            document.getElementById('placeEditorPanel').classList.add('active');
+        }
+
+        function openEditPlace(layerIdx, placeIdx) {
+            editingLayerIdx = layerIdx;
+            editingPlaceIdx = placeIdx;
+            const place = mapLayers[layerIdx].places[placeIdx];
+            document.getElementById('placeEditorTitle').textContent = 'Modifica tappa';
+            document.getElementById('placeNameInput').value = place.name;
+            document.getElementById('placeAddressInput').value = place.desc || '';
+            document.getElementById('placeDescInput').value = '';
+            // Store current coords
+            document.getElementById('placeEditorPanel').dataset.lat = place.lat;
+            document.getElementById('placeEditorPanel').dataset.lng = place.lng;
+            document.getElementById('placeEditorPanel').classList.add('active');
+            leafletMap.closePopup();
+        }
+
+        function closePlaceEditorPanel() {
+            document.getElementById('placeEditorPanel').classList.remove('active');
+            editingLayerIdx = null;
+            editingPlaceIdx = null;
+        }
+
+        async function geocodeAddress(address) {
+            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1&countrycodes=us`;
+            try {
+                const resp = await fetch(url);
+                const data = await resp.json();
+                if (data && data.length > 0) {
+                    return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+                }
+            } catch(e) {}
+            // Try without country restriction
+            try {
+                const url2 = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address + ' New York')}&limit=1`;
+                const resp2 = await fetch(url2);
+                const data2 = await resp2.json();
+                if (data2 && data2.length > 0) {
+                    return { lat: parseFloat(data2[0].lat), lng: parseFloat(data2[0].lon) };
+                }
+            } catch(e) {}
+            return null;
+        }
+
+        async function savePlaceFromPanel() {
+            const name = document.getElementById('placeNameInput').value.trim();
+            const address = document.getElementById('placeAddressInput').value.trim();
+            const desc = document.getElementById('placeDescInput').value.trim();
+
+            if (!name) { alert('Inserisci il nome della tappa!'); return; }
+
+            const btn = document.getElementById('savePlaceBtn');
+            btn.textContent = '⏳ Cerco...';
+            btn.disabled = true;
+
+            let lat, lng;
+
+            if (editingPlaceIdx !== null) {
+                // Editing - keep existing coords if no new address
+                lat = parseFloat(document.getElementById('placeEditorPanel').dataset.lat);
+                lng = parseFloat(document.getElementById('placeEditorPanel').dataset.lng);
+            }
+
+            if (address) {
+                const coords = await geocodeAddress(address);
+                if (coords) {
+                    lat = coords.lat;
+                    lng = coords.lng;
+                } else {
+                    btn.textContent = 'Salva';
+                    btn.disabled = false;
+                    alert('Indirizzo non trovato. Prova con un indirizzo più preciso (es: "Times Square, New York")');
+                    return;
+                }
+            }
+
+            if (!lat || !lng) {
+                btn.textContent = 'Salva';
+                btn.disabled = false;
+                alert('Inserisci un indirizzo per posizionare la tappa sulla mappa!');
+                return;
+            }
+
+            const place = { name, lat, lng, desc: desc || address };
+
+            if (editingPlaceIdx !== null) {
+                mapLayers[editingLayerIdx].places[editingPlaceIdx] = place;
+            } else {
+                mapLayers[editingLayerIdx].places.push(place);
+            }
+
+            await saveMapDataToFirebase();
+            closePlaceEditorPanel();
+            refreshAllMarkers();
+            renderLayerToggles();
+            leafletMap.setView([lat, lng], 15);
+
+            btn.textContent = 'Salva';
+            btn.disabled = false;
+        }
+
+        async function deletePlace(layerIdx, placeIdx) {
+            if (!confirm(`Eliminare "${mapLayers[layerIdx].places[placeIdx].name}"?`)) return;
+            mapLayers[layerIdx].places.splice(placeIdx, 1);
+            await saveMapDataToFirebase();
+            leafletMap.closePopup();
+            refreshAllMarkers();
+            renderLayerToggles();
+        }
+
+        // ---- ADD LAYER PANEL ----
+        function openAddLayerPanel() {
+            document.getElementById('newLayerNameInput').value = '';
+            document.getElementById('addLayerPanel').classList.add('active');
+        }
+
+        function closeAddLayerPanel() {
+            document.getElementById('addLayerPanel').classList.remove('active');
+        }
+
+        async function saveNewLayer() {
+            const name = document.getElementById('newLayerNameInput').value.trim();
+            if (!name) { alert('Inserisci il nome del layer!'); return; }
+            mapLayers.push({ name, places: [] });
+            await saveMapDataToFirebase();
+            closeAddLayerPanel();
+            renderLayerToggles();
+        }
+
+        async function deleteLayer(idx) {
+            if (!confirm(`Eliminare il layer "${mapLayers[idx].name}" con tutte le sue tappe?`)) return;
+            // Remove markers
+            leafletMarkers[idx]?.forEach(m => { if(m) leafletMap.removeLayer(m); });
+            mapLayers.splice(idx, 1);
+            await saveMapDataToFirebase();
+            refreshAllMarkers();
+            renderLayerToggles();
+        }
+
+        function locateMe() {
+            if (!leafletMap) return;
+            leafletMap.locate({ setView: true, maxZoom: 16 });
+            leafletMap.once('locationfound', function(e) {
+                if (userLocationMarker) leafletMap.removeLayer(userLocationMarker);
+                userLocationMarker = L.circleMarker(e.latlng, {
+                    radius: 10, fillColor: '#2196F3', color: '#fff',
+                    weight: 3, fillOpacity: 1
+                }).addTo(leafletMap).bindPopup('📍 Sei qui!').openPopup();
+            });
+            leafletMap.once('locationerror', () => {
+                alert('Impossibile trovare la tua posizione.');
+            });
+        }
+
+        // Checklist Functions
+        let checklistState = {};
+        let currentChecklistUser = 'gio';
+        let checklistDataPupi = [];
+        let checklistDataGio = [];
+
+        function showChecklistChoiceModal() {
+            document.getElementById('checklistChoiceModal').classList.add('active');
+        }
+
+        function closeChecklistChoiceModal() {
+            document.getElementById('checklistChoiceModal').classList.remove('active');
+        }
+
+        function openChecklist(user) {
+            currentChecklistUser = user;
+            closeChecklistChoiceModal();
+            document.getElementById('checklistModal').classList.add('active');
+            document.getElementById('checklistHeaderTitle').textContent = `${user.toUpperCase()}`;
+            loadChecklist();
+        }
+
+        function closeChecklistModal() {
+            document.getElementById('checklistModal').classList.remove('active');
+        }
+
+        async function loadChecklist() {
+            try {
+                // Load GIO checklist (from original checklistData)
+                const docGio = await db.collection('checklist').doc('gio').get();
+                if (docGio.exists) {
+                    checklistDataGio = docGio.data().items || checklistData;
+                } else {
+                    checklistDataGio = checklistData;
+                    await db.collection('checklist').doc('gio').set({ items: checklistData });
+                }
+
+                // Load PUPI checklist (empty by default)
+                const docPupi = await db.collection('checklist').doc('pupi').get();
+                if (docPupi.exists) {
+                    checklistDataPupi = docPupi.data().items || [];
+                } else {
+                    checklistDataPupi = [];
+                    await db.collection('checklist').doc('pupi').set({ items: [] });
+                }
+
+                // Load checked states
+                const docStates = await db.collection('checklist').doc('states').get();
+                if (docStates.exists) {
+                    checklistState = docStates.data();
+                }
+            } catch (error) {
+                console.log('Loading checklist from Firebase:', error);
+                checklistDataGio = checklistData;
+                checklistDataPupi = [];
+            }
+            renderChecklist();
+        }
+
+        async function saveChecklistData() {
+            try {
+                if (currentChecklistUser === 'gio') {
+                    await db.collection('checklist').doc('gio').set({ items: checklistDataGio });
+                } else {
+                    await db.collection('checklist').doc('pupi').set({ items: checklistDataPupi });
+                }
+            } catch (error) {
+                console.error('Error saving checklist data:', error);
+            }
+        }
+
+        async function toggleChecklistItem(itemId) {
+            const stateKey = `${currentChecklistUser}_${itemId}`;
+            checklistState[stateKey] = !checklistState[stateKey];
+            
+            try {
+                await db.collection('checklist').doc('states').set(checklistState);
+            } catch (error) {
+                console.error('Error saving to Firebase:', error);
+            }
+            
+            renderChecklist();
+        }
+
+        function addChecklistItem() {
+            const newItemText = prompt('Inserisci il nome del nuovo elemento:');
+            if (!newItemText || newItemText.trim() === '') return;
+
+            const currentData = currentChecklistUser === 'gio' ? checklistDataGio : checklistDataPupi;
+            const newId = `custom_${Date.now()}`;
+            
+            // Add to "Personalizzati" category
+            let customCategory = currentData.find(cat => cat.title === "PERSONALIZZATI");
+            if (!customCategory) {
+                customCategory = {
+                    title: "PERSONALIZZATI",
+                    sections: [{
+                        subtitle: "Elementi Aggiunti",
+                        items: []
+                    }]
+                };
+                currentData.push(customCategory);
+            }
+
+            customCategory.sections[0].items.push({
+                id: newId,
+                label: newItemText.trim()
+            });
+
+            if (currentChecklistUser === 'gio') {
+                checklistDataGio = currentData;
+            } else {
+                checklistDataPupi = currentData;
+            }
+
+            saveChecklistData();
+            renderChecklist();
+        }
+
+        function editChecklistItem(categoryIndex, sectionIndex, itemIndex) {
+            const currentData = currentChecklistUser === 'gio' ? checklistDataGio : checklistDataPupi;
+            const item = currentData[categoryIndex].sections[sectionIndex].items[itemIndex];
+            
+            const newText = prompt('Modifica elemento:', item.label);
+            if (newText && newText.trim() !== '') {
+                item.label = newText.trim();
+                saveChecklistData();
+                renderChecklist();
+            }
+        }
+
+        function deleteChecklistItem(categoryIndex, sectionIndex, itemIndex) {
+            if (!confirm('Sei sicuro di voler eliminare questo elemento?')) return;
+
+            const currentData = currentChecklistUser === 'gio' ? checklistDataGio : checklistDataPupi;
+            currentData[categoryIndex].sections[sectionIndex].items.splice(itemIndex, 1);
+
+            // Remove category if empty
+            if (currentData[categoryIndex].sections[sectionIndex].items.length === 0) {
+                currentData[categoryIndex].sections.splice(sectionIndex, 1);
+            }
+            if (currentData[categoryIndex].sections.length === 0) {
+                currentData.splice(categoryIndex, 1);
+            }
+
+            if (currentChecklistUser === 'gio') {
+                checklistDataGio = currentData;
+            } else {
+                checklistDataPupi = currentData;
+            }
+
+            saveChecklistData();
+            renderChecklist();
+        }
+
+        function renderChecklist() {
+            const container = document.getElementById('checklistContent');
+            const currentData = currentChecklistUser === 'gio' ? checklistDataGio : checklistDataPupi;
+            
+            let html = '';
+            let totalItems = 0;
+            let checkedItems = 0;
+
+            currentData.forEach((category, catIndex) => {
+                html += `<div class="checklist-category">`;
+                html += `<div class="category-title">${category.title}</div>`;
+                
+                category.sections.forEach((section, secIndex) => {
+                    html += `<div class="category-subtitle">${section.subtitle}</div>`;
+                    
+                    section.items.forEach((item, itemIndex) => {
+                        totalItems++;
+                        const stateKey = `${currentChecklistUser}_${item.id}`;
+                        const isChecked = checklistState[stateKey] || false;
+                        if (isChecked) checkedItems++;
+                        
+                        html += `
+                            <div class="checklist-item ${isChecked ? 'checked' : ''}" style="display: flex; align-items: center; gap: 8px; padding: 10px; background: var(--bg-primary); border-radius: 8px; margin-bottom: 6px;">
+                                <div onclick="toggleChecklistItem('${item.id}')" style="display: flex; align-items: center; gap: 10px; flex: 1; cursor: pointer;">
+                                    <div class="checklist-checkbox"></div>
+                                    <div class="checklist-label" style="font-size: 13px; font-weight: 300;">${item.label}</div>
+                                </div>
+                                <button onclick="event.stopPropagation(); editChecklistItem(${catIndex}, ${secIndex}, ${itemIndex})" style="padding: 6px 8px; background: transparent; color: var(--text-secondary); border: none; border-radius: 6px; cursor: pointer; font-size: 14px; opacity: 0.6; transition: opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'">✏️</button>
+                                <button onclick="event.stopPropagation(); deleteChecklistItem(${catIndex}, ${secIndex}, ${itemIndex})" style="padding: 6px 8px; background: transparent; color: var(--text-secondary); border: none; border-radius: 6px; cursor: pointer; font-size: 14px; opacity: 0.6; transition: opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'">×</button>
+                            </div>
+                        `;
+                    });
+                });
+                
+                html += `</div>`;
+            });
+
+            if (totalItems === 0) {
+                html = '<div style="text-align: center; padding: 40px; color: var(--text-secondary); font-size: 13px; font-weight: 300;">Nessun elemento. Clicca "Aggiungi elemento".</div>';
+            }
+
+            container.innerHTML = html;
+            
+            // Update progress
+            const percentage = totalItems > 0 ? Math.round((checkedItems / totalItems) * 100) : 0;
+            document.getElementById('checklistProgressText').textContent = `${checkedItems} / ${totalItems} completati (${percentage}%)`;
+            document.getElementById('checklistProgressBar').style.width = percentage + '%';
+        }
+
+        // Food Choice Modal
+        function showFoodChoiceModal() {
+            document.getElementById('foodChoiceModal').classList.add('active');
+        }
+
+        function closeFoodChoiceModal() {
+            document.getElementById('foodChoiceModal').classList.remove('active');
+        }
+
+        // Restaurants Modal
+        let restaurantRating = 0;
+        let restaurants = [];
+
+        function showRestaurantsModal() {
+            document.getElementById('restaurantsModal').classList.add('active');
+            loadRestaurants();
+        }
+
+        function closeRestaurantsModal() {
+            document.getElementById('restaurantsModal').classList.remove('active');
+        }
+
+        function toggleAddRestaurant() {
+            const form = document.getElementById('addRestaurantForm');
+            form.classList.toggle('active');
+            if (!form.classList.contains('active')) {
+                document.getElementById('restaurantNameInput').value = '';
+                document.getElementById('restaurantNoteInput').value = '';
+                restaurantRating = 0;
+                updateStarDisplay();
+            }
+        }
+
+        function setRestaurantRating(rating) {
+            restaurantRating = rating;
+            updateStarDisplay();
+        }
+
+        function updateStarDisplay() {
+            const stars = document.querySelectorAll('#restaurantStars .star');
+            stars.forEach((star, index) => {
+                if (index < restaurantRating) {
+                    star.classList.add('active');
+                } else {
+                    star.classList.remove('active');
+                }
+            });
+        }
+
+        async function saveRestaurant() {
+            const name = document.getElementById('restaurantNameInput').value.trim();
+            const note = document.getElementById('restaurantNoteInput').value.trim();
+            
+            console.log('Saving restaurant:', name, restaurantRating, note);
+            
+            if (!name || restaurantRating === 0) {
+                alert('Inserisci nome e voto!');
+                return;
+            }
+
+            const restaurant = {
+                id: Date.now().toString(),
+                name: name,
+                rating: restaurantRating,
+                note: note,
+                date: new Date().toISOString()
+            };
+
+            try {
+                const doc = await db.collection('restaurants').doc('list').get();
+                let list = [];
+                if (doc.exists) {
+                    list = doc.data().items || [];
+                }
+                list.unshift(restaurant);
+                await db.collection('restaurants').doc('list').set({ items: list });
+                
+                alert('Ristorante salvato!');
+                restaurantRating = 0;
+                updateStarDisplay();
+                toggleAddRestaurant();
+                loadRestaurants();
+            } catch (error) {
+                console.error('Error saving restaurant:', error);
+                alert('Errore nel salvare il ristorante: ' + error.message);
+            }
+        }
+
+        async function loadRestaurants() {
+            try {
+                const doc = await db.collection('restaurants').doc('list').get();
+                if (doc.exists) {
+                    restaurants = doc.data().items || [];
+                }
+            } catch (error) {
+                console.log('Loading restaurants:', error);
+            }
+            renderRestaurants();
+        }
+
+        function renderRestaurants() {
+            const container = document.getElementById('restaurantsContent');
+            if (restaurants.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 40px 0;">Nessun ristorante ancora</p>';
+                return;
+            }
+
+            let html = '';
+            restaurants.forEach(r => {
+                const stars = '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating);
+                html += `
+                    <div class="restaurant-item">
+                        <div class="restaurant-header">
+                            <div class="restaurant-name">${r.name}</div>
+                            <div class="restaurant-stars">${stars}</div>
+                        </div>
+                        ${r.note ? `<div class="restaurant-note">${r.note}</div>` : ''}
+                        <button class="post-delete" onclick="deleteRestaurant('${r.id}')">Elimina</button>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        async function deleteRestaurant(id) {
+            if (!confirm('Eliminare questo ristorante?')) return;
+            
+            try {
+                restaurants = restaurants.filter(r => r.id !== id);
+                await db.collection('restaurants').doc('list').set({ items: restaurants });
+                renderRestaurants();
+            } catch (error) {
+                console.error('Error deleting restaurant:', error);
+            }
+        }
+
+        // Diario Modal
+        let posts = [];
+
+        function showDiarioModal() {
+            document.getElementById('diarioModal').classList.add('active');
+            loadDiario();
+        }
+
+        function closeDiarioModal() {
+            document.getElementById('diarioModal').classList.remove('active');
+        }
+
+        function toggleAddPost() {
+            const form = document.getElementById('addPostForm');
+            form.classList.toggle('active');
+            if (!form.classList.contains('active')) {
+                document.getElementById('postContentInput').value = '';
+            }
+        }
+
+        async function savePost() {
+            const content = document.getElementById('postContentInput').value.trim();
+            
+            console.log('Saving post:', content);
+            
+            if (!content) {
+                alert('Scrivi qualcosa prima di salvare!');
+                return;
+            }
+
+            const post = {
+                id: Date.now().toString(),
+                content: content,
+                date: new Date().toISOString()
+            };
+
+            try {
+                const doc = await db.collection('diario').doc('posts').get();
+                let list = [];
+                if (doc.exists) {
+                    list = doc.data().items || [];
+                }
+                list.unshift(post);
+                await db.collection('diario').doc('posts').set({ items: list });
+                
+                alert('Post salvato!');
+                toggleAddPost();
+                loadDiario();
+            } catch (error) {
+                console.error('Error saving post:', error);
+                alert('Errore nel salvare il post: ' + error.message);
+            }
+        }
+
+        async function loadDiario() {
+            try {
+                const doc = await db.collection('diario').doc('posts').get();
+                if (doc.exists) {
+                    posts = doc.data().items || [];
+                }
+            } catch (error) {
+                console.log('Loading diario:', error);
+            }
+            renderDiario();
+        }
+
+        function renderDiario() {
+            const container = document.getElementById('diarioContent');
+            if (posts.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 40px 0;">Nessun post ancora</p>';
+                return;
+            }
+
+            let html = '';
+            posts.forEach(p => {
+                const date = new Date(p.date);
+                const dateStr = date.toLocaleDateString('it-IT', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+                html += `
+                    <div class="diario-post">
+                        <div class="post-date">${dateStr}</div>
+                        <div class="post-content">${p.content}</div>
+                        <button class="post-delete" onclick="deletePost('${p.id}')">Elimina</button>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        async function deletePost(id) {
+            if (!confirm('Eliminare questo post?')) return;
+            
+            try {
+                posts = posts.filter(p => p.id !== id);
+                await db.collection('diario').doc('posts').set({ items: posts });
+                renderDiario();
+            } catch (error) {
+                console.error('Error deleting post:', error);
+            }
+        }
+
+        // Spese Modal
+        let spese = [];
+        let USD_TO_EUR = 0.92; // Fallback statico
+        let exchangeRateDate = '';
+
+        async function fetchExchangeRate() {
+            try {
+                const resp = await fetch('https://open.er-api.com/v6/latest/USD');
+                const data = await resp.json();
+                if (data && data.rates && data.rates.EUR) {
+                    USD_TO_EUR = data.rates.EUR;
+                    exchangeRateDate = data.time_last_update_utc || '';
+                    console.log('Tasso USD/EUR aggiornato:', USD_TO_EUR);
+                }
+            } catch(e) {
+                console.log('Tasso di cambio non disponibile, uso fallback:', USD_TO_EUR);
+            }
+        }
+
+        function showSpeseModal() {
+            document.getElementById('speseModal').classList.add('active');
+            fetchExchangeRate().then(() => loadSpese());
+        }
+
+        function closeSpeseModal() {
+            document.getElementById('speseModal').classList.remove('active');
+        }
+
+        function toggleAddSpesa() {
+            const form = document.getElementById('addSpesaForm');
+            form.classList.toggle('active');
+            if (!form.classList.contains('active')) {
+                document.getElementById('spesaDescInput').value = '';
+                document.getElementById('spesaDateInput').value = '';
+                document.getElementById('spesaAmountInput').value = '';
+            } else {
+                // Set today's date as default
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('spesaDateInput').value = today;
+            }
+        }
+
+        async function saveSpesa() {
+            const desc = document.getElementById('spesaDescInput').value.trim();
+            const date = document.getElementById('spesaDateInput').value;
+            const amount = parseFloat(document.getElementById('spesaAmountInput').value);
+            
+            console.log('Saving spesa:', desc, date, amount);
+            
+            if (!desc || !date || isNaN(amount) || amount <= 0) {
+                alert('Compila tutti i campi correttamente!');
+                return;
+            }
+
+            const spesa = {
+                id: Date.now().toString(),
+                desc: desc,
+                date: date,
+                amount: amount
+            };
+
+            try {
+                const doc = await db.collection('spese').doc('list').get();
+                let list = [];
+                if (doc.exists) {
+                    list = doc.data().items || [];
+                }
+                list.unshift(spesa);
+                await db.collection('spese').doc('list').set({ items: list });
+                
+                alert('Spesa salvata!');
+                toggleAddSpesa();
+                loadSpese();
+            } catch (error) {
+                console.error('Error saving spesa:', error);
+                alert('Errore nel salvare la spesa: ' + error.message);
+            }
+        }
+
+        async function loadSpese() {
+            try {
+                const doc = await db.collection('spese').doc('list').get();
+                if (doc.exists) {
+                    spese = doc.data().items || [];
+                }
+            } catch (error) {
+                console.log('Loading spese:', error);
+            }
+            renderSpese();
+        }
+
+        function renderSpese() {
+            const container = document.getElementById('speseContent');
+            
+            // Calculate totals
+            let totalUSD = 0;
+            spese.forEach(s => totalUSD += s.amount);
+            const totalEUR = totalUSD * USD_TO_EUR;
+
+            // Render total
+            const rateInfo = exchangeRateDate ? `<div style="font-size:10px;opacity:0.6;margin-top:4px;">1 USD = €${USD_TO_EUR.toFixed(4)} · ${new Date(exchangeRateDate).toLocaleDateString('it-IT')}</div>` : `<div style="font-size:10px;opacity:0.6;margin-top:4px;">Tasso fisso (offline)</div>`;
+            document.getElementById('totalGeneral').innerHTML = `
+                <div class="total-label">Totale Generale</div>
+                <div class="total-amount">$${totalUSD.toFixed(2)} · €${totalEUR.toFixed(2)}</div>
+                ${rateInfo}
+            `;
+
+            if (spese.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 40px 0;">Nessuna spesa ancora</p>';
+                return;
+            }
+
+            // Group by day
+            const byDay = {};
+            spese.forEach(s => {
+                if (!byDay[s.date]) byDay[s.date] = [];
+                byDay[s.date].push(s);
+            });
+
+            let html = '';
+            Object.keys(byDay).sort().reverse().forEach(date => {
+                const daySpese = byDay[date];
+                let dayTotal = 0;
+                daySpese.forEach(s => dayTotal += s.amount);
+                const dayTotalEUR = dayTotal * USD_TO_EUR;
+
+                const dateObj = new Date(date + 'T00:00:00');
+                const dateStr = dateObj.toLocaleDateString('it-IT', { day: '2-digit', month: 'long', year: 'numeric' });
+
+                html += `<div class="category-title" style="margin-top: 20px;">${dateStr} - $${dayTotal.toFixed(2)} (€${dayTotalEUR.toFixed(2)})</div>`;
+                
+                daySpese.forEach(s => {
+                    const eur = s.amount * USD_TO_EUR;
+                    html += `
+                        <div class="spesa-item">
+                            <div class="spesa-info">
+                                <div class="spesa-desc">${s.desc}</div>
+                            </div>
+                            <div class="spesa-amounts">
+                                <div class="spesa-usd">$${s.amount.toFixed(2)}</div>
+                                <div class="spesa-eur">€${eur.toFixed(2)}</div>
+                            </div>
+                            <button class="delete-item-btn" onclick="deleteSpesa('${s.id}')">🗑️</button>
+                        </div>
+                    `;
+                });
+            });
+
+            container.innerHTML = html;
+        }
+
+        async function deleteSpesa(id) {
+            if (!confirm('Eliminare questa spesa?')) return;
+            
+            try {
+                spese = spese.filter(s => s.id !== id);
+                await db.collection('spese').doc('list').set({ items: spese });
+                renderSpese();
+            } catch (error) {
+                console.error('Error deleting spesa:', error);
+            }
+        }
+
+        updateCountdown();
+        updateCurrentEvent();
+        setInterval(() => {
+            updateCountdown();
+            updateCurrentEvent();
+        }, 1000);
+    </script>
+</body>
+</html>
